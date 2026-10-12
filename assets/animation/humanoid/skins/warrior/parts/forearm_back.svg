@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « forearm_back ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(0.4695 0.8829 -0.8829 0.4695 4.1752 -117.2920)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <rect x="-5" y="-6" width="35" height="12" rx="6" fill="#b88f6c"/>
+    <rect x="8" y="-6.5" width="16" height="13" rx="3" fill="#4d301c"/>
+  </g>
+</svg>

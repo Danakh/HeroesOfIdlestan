@@ -5,6 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <!-- SVG des habillages d'animation : voir Animation/SkinRenderer.cs. -->
+    <PackageReference Include="Svg.Skia" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <!-- Bruitages, produits par assets/sounds/generate_sounds.py et chargés par SoundBank. -->

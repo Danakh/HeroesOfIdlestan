@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « hand_back ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(0.4695 0.8829 -0.8829 0.4695 16.3815 -94.3353)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <circle cx="5" cy="0" r="6" fill="#4d301c"/>
+  </g>
+</svg>

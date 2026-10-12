@@ -17,14 +17,16 @@ Il est extrait de l'architecture de SettlersOfIdlestan.
 | [04 — Sons](04-sons.md) | Ajouter un bruitage, la chaîne audio par plateforme |
 | [05 — Plateformes](05-plateformes.md) | Les heads Desktop, Browser et Android, et ce que chacun fournit |
 | [06 — Déploiement web](06-deploiement-web.md) | Publier la version web sur GitHub Pages |
+| [07 — Animation](07-animation.md) | Squelettes, habillages SVG, format des animations, outil de test |
 
 ## Commandes
 
 ```bash
-dotnet build HeroesOfIdlestan.slnx                      # Core, Render, UI, Desktop, Browser, Tests
+dotnet build HeroesOfIdlestan.slnx                      # Core, Render, UI, Desktop, AnimationTool, Browser, Tests
 dotnet run --project HeroesOfIdlestan.Desktop
 dotnet run --project HeroesOfIdlestan.Browser           # sert la page et ouvre le navigateur
 dotnet publish HeroesOfIdlestan.Android -c Release      # APK (hors .slnx, workload android requis)
+dotnet run --project HeroesOfIdlestan.AnimationTool    # banc d'essai des animations
 dotnet test HeroesOfIdlestan.Tests
 python assets/sounds/generate_sounds.py              # régénère les WAV
 ```
@@ -44,8 +46,10 @@ HeroesOfIdlestan.UI/         overlay Avalonia, GameRuntimeHost, boucle de frame
 HeroesOfIdlestan.Desktop/    head bureau (+ NativeAudioService, partagé avec Android)
 HeroesOfIdlestan.Browser/    head WebAssembly (+ wwwroot/)
 HeroesOfIdlestan.Android/    head Android (hors .slnx)
+HeroesOfIdlestan.AnimationTool/  banc d'essai des animations (Avalonia, bureau)
 HeroesOfIdlestan.Tests/      tests xUnit + saves/ (fixtures)
 assets/sounds/           générateur des bruitages
+assets/animation/        squelettes, habillages SVG et animations (voir 07)
 tools/New-Game.ps1       crée un nouveau jeu à partir du squelette
 .github/workflows/       déploiement web, build APK
 design/                  cette documentation

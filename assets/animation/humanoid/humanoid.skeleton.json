@@ -1,0 +1,26 @@
+{
+  "format": "hoi-skeleton",
+  "version": 1,
+  "id": "humanoid",
+  // Vue de profil, regard vers +X. Origine aux pieds, Y vers le bas, angles en degrés (sens horaire).
+  // « back » = côté éloigné du spectateur (dessiné derrière le corps), « front » = côté proche.
+  "bones": [
+    { "name": "root" },
+    { "name": "pelvis",         "parent": "root",           "y": -95 },
+    { "name": "torso",          "parent": "pelvis",         "rotation": -90, "length": 55 },
+    { "name": "head",           "parent": "torso",          "x": 58, "length": 34 },
+    { "name": "upperarm_back",  "parent": "torso",          "x": 52, "rotation": 172, "length": 30 },
+    { "name": "forearm_back",   "parent": "upperarm_back",  "x": 30, "rotation": -20, "length": 26 },
+    { "name": "hand_back",      "parent": "forearm_back",   "x": 26, "length": 8 },
+    { "name": "thigh_back",     "parent": "pelvis",         "rotation": 90, "length": 45 },
+    { "name": "shin_back",      "parent": "thigh_back",     "x": 45, "length": 45 },
+    { "name": "foot_back",      "parent": "shin_back",      "x": 45, "rotation": -90, "length": 16 },
+    { "name": "thigh_front",    "parent": "pelvis",         "rotation": 90, "length": 45 },
+    { "name": "shin_front",     "parent": "thigh_front",    "x": 45, "length": 45 },
+    { "name": "foot_front",     "parent": "shin_front",     "x": 45, "rotation": -90, "length": 16 },
+    { "name": "upperarm_front", "parent": "torso",          "x": 52, "rotation": 185, "length": 30 },
+    { "name": "forearm_front",  "parent": "upperarm_front", "x": 30, "rotation": -75, "length": 26 },
+    { "name": "hand_front",     "parent": "forearm_front",  "x": 26, "length": 8 },
+    { "name": "weapon",         "parent": "hand_front",     "x": 4, "rotation": -100, "length": 70 }
+  ]
+}

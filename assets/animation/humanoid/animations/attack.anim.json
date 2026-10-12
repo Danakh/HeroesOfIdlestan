@@ -1,0 +1,132 @@
+{
+  "format": "hoi-animation",
+  "version": 1,
+  "id": "attack",
+  "skeleton": "humanoid",
+  // Coup d'épée de haut en bas avec fente : armé (0 → 0,3 s), frappe (→ 0,42 s), tenue, retour.
+  // L'événement « hit » marque l'instant où le jeu applique les dégâts.
+  "duration": 0.9,
+  "loop": false,
+  "bones": {
+    "pelvis": {
+      "translate": [
+        { "time": 0,    "x": 0,  "y": 0, "curve": "Smooth" },
+        { "time": 0.3,  "x": -6, "y": 2 },
+        { "time": 0.42, "x": 10, "y": 7 },
+        { "time": 0.6,  "x": 10, "y": 7, "curve": "Smooth" },
+        { "time": 0.9,  "x": 0,  "y": 0 }
+      ]
+    },
+    "torso": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": -12 },
+        { "time": 0.42, "angle": 14 },
+        { "time": 0.6,  "angle": 14, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "head": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": 8 },
+        { "time": 0.42, "angle": -10 },
+        { "time": 0.6,  "angle": -10, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "upperarm_front": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": -200 },
+        { "time": 0.42, "angle": -60 },
+        { "time": 0.6,  "angle": -60, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "forearm_front": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": -20 },
+        { "time": 0.42, "angle": 55 },
+        { "time": 0.6,  "angle": 55, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "weapon": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": 110 },
+        { "time": 0.42, "angle": 105 },
+        { "time": 0.6,  "angle": 100, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "upperarm_back": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": -40 },
+        { "time": 0.42, "angle": 40 },
+        { "time": 0.6,  "angle": 40, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "thigh_front": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": -5 },
+        { "time": 0.42, "angle": -35 },
+        { "time": 0.6,  "angle": -35, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "shin_front": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": 5 },
+        { "time": 0.42, "angle": 30 },
+        { "time": 0.6,  "angle": 30, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "foot_front": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": 0 },
+        { "time": 0.42, "angle": 5 },
+        { "time": 0.6,  "angle": 5, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "thigh_back": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": 5 },
+        { "time": 0.42, "angle": 25 },
+        { "time": 0.6,  "angle": 25, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "shin_back": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": 0 },
+        { "time": 0.42, "angle": 10 },
+        { "time": 0.6,  "angle": 10, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    },
+    "foot_back": {
+      "rotate": [
+        { "time": 0,    "angle": 0, "curve": "Smooth" },
+        { "time": 0.3,  "angle": -5 },
+        { "time": 0.42, "angle": -15 },
+        { "time": 0.6,  "angle": -15, "curve": "Smooth" },
+        { "time": 0.9,  "angle": 0 }
+      ]
+    }
+  },
+  "events": [
+    { "time": 0.4, "name": "hit" }
+  ]
+}

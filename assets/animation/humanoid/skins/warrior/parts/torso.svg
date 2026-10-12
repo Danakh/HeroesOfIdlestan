@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « torso ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(0.0000 -1.0000 1.0000 0.0000 0.0000 -95.0000)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <polygon points="-16,-15 4,-13 4,14 -16,17" fill="#9b2c2c"/>
+    <rect x="-2" y="-14" width="60" height="29" rx="10" fill="#9b2c2c"/>
+    <rect x="18" y="-14" width="38" height="30" rx="9" fill="#9aa5b1"/>
+    <rect x="0" y="-14.5" width="8" height="30" rx="0" fill="#6b4428"/>
+    <rect x="1.5" y="9" width="5" height="6" rx="1" fill="#d4a640"/>
+  </g>
+</svg>

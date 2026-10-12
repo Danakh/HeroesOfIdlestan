@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « shin_back ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(0.0000 1.0000 -1.0000 0.0000 0.0000 -50.0000)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <rect x="-6" y="-7.5" width="54" height="15.0" rx="7.5" fill="#2a2d35"/>
+    <rect x="20" y="-8.5" width="30" height="17" rx="4" fill="#4d301c"/>
+  </g>
+</svg>

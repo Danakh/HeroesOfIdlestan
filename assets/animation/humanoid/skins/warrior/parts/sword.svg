@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « weapon ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(0.1736 -0.9848 0.9848 0.1736 25.5761 -106.8536)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <polygon points="11,-4 64,-4 76,0 64,4 11,4" fill="#dfe4ea"/>
+    <line x1="14" y1="0" x2="60" y2="0" stroke="#717b86" stroke-width="1.2"/>
+    <rect x="-9" y="-2.5" width="18" height="5" rx="2" fill="#6b4428"/>
+    <rect x="8" y="-10" width="4" height="20" rx="1.5" fill="#d4a640"/>
+    <circle cx="-10" cy="0" r="3.5" fill="#d4a640"/>
+  </g>
+</svg>

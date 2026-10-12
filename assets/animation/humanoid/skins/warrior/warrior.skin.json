@@ -1,0 +1,25 @@
+{
+  "format": "hoi-skin",
+  "version": 1,
+  "id": "warrior",
+  "skeleton": "humanoid",
+  // Ordre de dessin, du fond vers l'avant. Chaque SVG est dessiné dans le repère du personnage en
+  // pose de repos (même viewBox pour tous) : voir design/07-animation.md.
+  "attachments": [
+    { "bone": "upperarm_back",  "svg": "parts/upperarm_back.svg" },
+    { "bone": "forearm_back",   "svg": "parts/forearm_back.svg" },
+    { "bone": "hand_back",      "svg": "parts/hand_back.svg" },
+    { "bone": "thigh_back",     "svg": "parts/thigh_back.svg" },
+    { "bone": "shin_back",      "svg": "parts/shin_back.svg" },
+    { "bone": "foot_back",      "svg": "parts/foot_back.svg" },
+    { "bone": "torso",          "svg": "parts/torso.svg" },
+    { "bone": "thigh_front",    "svg": "parts/thigh_front.svg" },
+    { "bone": "shin_front",     "svg": "parts/shin_front.svg" },
+    { "bone": "foot_front",     "svg": "parts/foot_front.svg" },
+    { "bone": "head",           "svg": "parts/head.svg" },
+    { "bone": "upperarm_front", "svg": "parts/upperarm_front.svg" },
+    { "bone": "forearm_front",  "svg": "parts/forearm_front.svg" },
+    { "bone": "weapon",         "svg": "parts/sword.svg" },
+    { "bone": "hand_front",     "svg": "parts/hand_front.svg" }
+  ]
+}

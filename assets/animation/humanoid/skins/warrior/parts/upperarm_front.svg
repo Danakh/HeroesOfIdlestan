@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « upperarm_front ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(-0.0872 0.9962 -0.9962 -0.0872 0.0000 -147.0000)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <rect x="-6" y="-7" width="40" height="14" rx="7" fill="#9b2c2c"/>
+    <circle cx="3" cy="0" r="10.5" fill="#9aa5b1"/>
+  </g>
+</svg>

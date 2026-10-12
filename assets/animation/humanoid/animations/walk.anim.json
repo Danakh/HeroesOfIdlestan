@@ -1,0 +1,120 @@
+{
+  "format": "hoi-animation",
+  "version": 1,
+  "id": "walk",
+  "skeleton": "humanoid",
+  // Marche sur place, deux pas par cycle. Valeurs = décalages par rapport à la pose de repos.
+  "duration": 0.8,
+  "loop": true,
+  "bones": {
+    "pelvis": {
+      "translate": [
+        { "time": 0,   "x": 0, "y": 7, "curve": "Smooth" },
+        { "time": 0.2, "x": 0, "y": 0, "curve": "Smooth" },
+        { "time": 0.4, "x": 0, "y": 7, "curve": "Smooth" },
+        { "time": 0.6, "x": 0, "y": 0, "curve": "Smooth" },
+        { "time": 0.8, "x": 0, "y": 7 }
+      ]
+    },
+    "torso": {
+      "rotate": [
+        { "time": 0,   "angle": 5, "curve": "Smooth" },
+        { "time": 0.2, "angle": 3, "curve": "Smooth" },
+        { "time": 0.4, "angle": 5, "curve": "Smooth" },
+        { "time": 0.6, "angle": 3, "curve": "Smooth" },
+        { "time": 0.8, "angle": 5 }
+      ]
+    },
+    "head": {
+      "rotate": [
+        { "time": 0,   "angle": -4, "curve": "Smooth" },
+        { "time": 0.2, "angle": -2, "curve": "Smooth" },
+        { "time": 0.4, "angle": -4, "curve": "Smooth" },
+        { "time": 0.6, "angle": -2, "curve": "Smooth" },
+        { "time": 0.8, "angle": -4 }
+      ]
+    },
+    "thigh_front": {
+      "rotate": [
+        { "time": 0,   "angle": -25, "curve": "Smooth" },
+        { "time": 0.4, "angle": 22,  "curve": "Smooth" },
+        { "time": 0.8, "angle": -25 }
+      ]
+    },
+    "shin_front": {
+      "rotate": [
+        { "time": 0,   "angle": 2,  "curve": "Smooth" },
+        { "time": 0.2, "angle": 8,  "curve": "Smooth" },
+        { "time": 0.4, "angle": 12, "curve": "Smooth" },
+        { "time": 0.6, "angle": 55, "curve": "Smooth" },
+        { "time": 0.8, "angle": 2 }
+      ]
+    },
+    "foot_front": {
+      "rotate": [
+        { "time": 0,   "angle": 11,    "curve": "Smooth" },
+        { "time": 0.2, "angle": -6.5,  "curve": "Smooth" },
+        { "time": 0.4, "angle": -9,    "curve": "Smooth" },
+        { "time": 0.6, "angle": -38.5, "curve": "Smooth" },
+        { "time": 0.8, "angle": 11 }
+      ]
+    },
+    "thigh_back": {
+      "rotate": [
+        { "time": 0,   "angle": 22,  "curve": "Smooth" },
+        { "time": 0.4, "angle": -25, "curve": "Smooth" },
+        { "time": 0.8, "angle": 22 }
+      ]
+    },
+    "shin_back": {
+      "rotate": [
+        { "time": 0,   "angle": 12, "curve": "Smooth" },
+        { "time": 0.2, "angle": 55, "curve": "Smooth" },
+        { "time": 0.4, "angle": 2,  "curve": "Smooth" },
+        { "time": 0.6, "angle": 8,  "curve": "Smooth" },
+        { "time": 0.8, "angle": 12 }
+      ]
+    },
+    "foot_back": {
+      "rotate": [
+        { "time": 0,   "angle": -9,    "curve": "Smooth" },
+        { "time": 0.2, "angle": -38.5, "curve": "Smooth" },
+        { "time": 0.4, "angle": 11,    "curve": "Smooth" },
+        { "time": 0.6, "angle": -6.5,  "curve": "Smooth" },
+        { "time": 0.8, "angle": -9 }
+      ]
+    },
+    "upperarm_back": {
+      "rotate": [
+        { "time": 0,   "angle": -20, "curve": "Smooth" },
+        { "time": 0.4, "angle": 18,  "curve": "Smooth" },
+        { "time": 0.8, "angle": -20 }
+      ]
+    },
+    "forearm_back": {
+      "rotate": [
+        { "time": 0,   "angle": -12, "curve": "Smooth" },
+        { "time": 0.4, "angle": 4,   "curve": "Smooth" },
+        { "time": 0.8, "angle": -12 }
+      ]
+    },
+    "upperarm_front": {
+      "rotate": [
+        { "time": 0,   "angle": 10,  "curve": "Smooth" },
+        { "time": 0.4, "angle": -10, "curve": "Smooth" },
+        { "time": 0.8, "angle": 10 }
+      ]
+    },
+    "weapon": {
+      "rotate": [
+        { "time": 0,   "angle": -4, "curve": "Smooth" },
+        { "time": 0.4, "angle": 4,  "curve": "Smooth" },
+        { "time": 0.8, "angle": -4 }
+      ]
+    }
+  },
+  "events": [
+    { "time": 0,   "name": "step" },
+    { "time": 0.4, "name": "step" }
+  ]
+}

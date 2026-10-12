@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -200 160 205" width="160" height="205">
+  <!-- Os « thigh_back ». Genere par assets/animation/generate_warrior_placeholder.py -->
+  <g transform="matrix(0.0000 1.0000 -1.0000 0.0000 0.0000 -95.0000)" stroke="#1e2228" stroke-width="1.5" stroke-linejoin="round">
+    <rect x="-8" y="-9" width="58" height="18" rx="9" fill="#2a2d35"/>
+  </g>
+</svg>

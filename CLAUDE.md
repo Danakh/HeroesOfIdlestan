@@ -9,5 +9,6 @@ sons, plateformes, déploiement, et comment démarrer un jeu à partir du squele
 ```bash
 dotnet build HeroesOfIdlestan.slnx
 dotnet run --project HeroesOfIdlestan.Desktop
+dotnet run --project HeroesOfIdlestan.AnimationTool   # banc d'essai des animations (design/07)
 dotnet test HeroesOfIdlestan.Tests
 ```

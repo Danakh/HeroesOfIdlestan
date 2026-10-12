@@ -3,6 +3,7 @@
   <Project Path="HeroesOfIdlestan.Render/HeroesOfIdlestan.Render.csproj" />
   <Project Path="HeroesOfIdlestan.UI/HeroesOfIdlestan.UI.csproj" />
   <Project Path="HeroesOfIdlestan.Desktop/HeroesOfIdlestan.Desktop.csproj" />
+  <Project Path="HeroesOfIdlestan.AnimationTool/HeroesOfIdlestan.AnimationTool.csproj" />
   <Project Path="HeroesOfIdlestan.Browser/HeroesOfIdlestan.Browser.csproj" />
   <Project Path="HeroesOfIdlestan.Tests/HeroesOfIdlestan.Tests.csproj" />
 </Solution>

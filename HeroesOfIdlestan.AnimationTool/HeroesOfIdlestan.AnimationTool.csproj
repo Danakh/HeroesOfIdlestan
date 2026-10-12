@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Banc d'essai du système d'animation (Core/Animation, Render/Animation) : choisir un squelette, un
+    habillage et jouer ses animations. Voir design/07-animation.md.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>HeroesOfIdlestan.AnimationTool</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.UI\HeroesOfIdlestan.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Copie de secours des données, utilisée seulement hors du dépôt : depuis le dépôt, l'outil lit
+      directement assets/animation/ pour que « Recharger » prenne une retouche sans recompiler.
+    -->
+    <None Include="..\assets\animation\**\*" Exclude="..\assets\animation\**\*.py"
+          Link="assets\animation\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
