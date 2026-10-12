@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Coeur du jeu : modèle + contrôleurs. Aucune dépendance de rendu ni d'UI. -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Localization\*.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HeroesOfIdlestan.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,66 @@
+name: Deploy web to GitHub Pages
+
+# Voir design/06-deploiement-web.md : activer Pages (Settings > Pages > Source : GitHub Actions)
+# avant le premier lancement.
+on:
+  # Lancement manuel depuis l'onglet Actions.
+  workflow_dispatch:
+  # Et à chaque tag de version (git tag v0.1.0 && git push origin v0.1.0).
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois ; on ne coupe pas un déploiement en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # Le bundle déployable est produit à cet emplacement fixe par le SDK WASM.
+  APP_BUNDLE: HeroesOfIdlestan.Browser/bin/Release/net10.0-browser/browser-wasm/AppBundle
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Jamais de mise en ligne avec des sauvegardes cassées : les tests (fixtures comprises) d'abord.
+      - name: Test
+        run: dotnet test HeroesOfIdlestan.Tests -c Release
+
+      - name: Install WASM workload
+        run: dotnet workload install wasm-tools
+
+      # Pas de -o : le SDK WASM y aplatirait le contenu intermédiaire. On prend AppBundle.
+      - name: Publish
+        run: dotnet publish HeroesOfIdlestan.Browser/HeroesOfIdlestan.Browser.csproj -c Release
+
+      # Jekyll ignore les dossiers préfixés par « _ », dont _framework/ où vit le runtime .NET.
+      - name: Add .nojekyll
+        run: touch $APP_BUNDLE/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ env.APP_BUNDLE }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

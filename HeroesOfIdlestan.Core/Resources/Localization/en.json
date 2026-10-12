@@ -1,0 +1,15 @@
+{
+  "app_title": "HeroesOfIdlestan",
+  "ui_gold": "Gold: {0}",
+  "ui_producers": "Producers: {0}",
+  "ui_buy_producer": "Buy a producer ({0} gold)",
+  "ui_pause": "Pause",
+  "ui_play": "Play",
+  "ui_bank": "Bank: {0} s",
+  "ui_save": "Save",
+  "ui_sound_on": "Sound: on",
+  "ui_sound_off": "Sound: off",
+  "ui_new_game": "New game",
+  "event_achievement_unlocked": "Achievement unlocked: {0}",
+  "event_producer_bought": "Producer bought"
+}

@@ -1,0 +1,10 @@
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+*.tmp
+
+# Clés de signature Android : jamais dans le dépôt.
+*.keystore
+*.jks

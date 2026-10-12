@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Couche View : rendu SkiaSharp du monde, caméra, input, écrans, runtime. Aucune dépendance Avalonia. -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Render</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Bruitages, produits par assets/sounds/generate_sounds.py et chargés par SoundBank. -->
+    <EmbeddedResource Include="Resources\sounds\*.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HeroesOfIdlestan.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core\HeroesOfIdlestan.Core.csproj" />
+  </ItemGroup>
+</Project>

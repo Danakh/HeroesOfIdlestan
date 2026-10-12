@@ -1,0 +1,91 @@
+name: Build Android APK
+
+# Voir design/05-plateformes.md pour la signature (secrets ANDROID_*).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PROJECT: HeroesOfIdlestan.Android/HeroesOfIdlestan.Android.csproj
+  PUBLISH_DIR: HeroesOfIdlestan.Android/bin/Release/net10.0-android/publish
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Test
+        run: dotnet test HeroesOfIdlestan.Tests -c Release
+
+      - name: Install Android workload
+        run: dotnet workload install android
+
+      # Le runner fournit un SDK Android, pas forcément la plateforme ciblée : on installe ce qui manque.
+      - name: Install Android SDK dependencies
+        run: >
+          dotnet build $PROJECT -t:InstallAndroidDependencies -f net10.0-android
+          -p:AndroidSdkDirectory=$ANDROID_SDK_ROOT -p:AcceptAndroidSDKLicenses=True
+
+      # Sans les secrets, l'APK est signé avec une clé de debug générée à chaque run : installable,
+      # mais pas par-dessus une version précédente.
+      - name: Decode keystore
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "path=$RUNNER_TEMP/release.keystore" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Secret ANDROID_KEYSTORE_BASE64 absent : APK signé avec une clé de debug."
+          fi
+
+      # versionCode = numéro de run (strictement croissant) ; versionName lu dans GameVersion.cs par le csproj.
+      - name: Publish
+        env:
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          SIGNING=()
+          if [ -n "$KEYSTORE_PATH" ]; then
+            SIGNING=(-p:AndroidSigningKeyStore="$KEYSTORE_PATH"
+                     -p:AndroidSigningStorePass="env:KEYSTORE_PASS"
+                     -p:AndroidSigningKeyAlias="$KEY_ALIAS"
+                     -p:AndroidSigningKeyPass="env:KEY_PASS")
+          fi
+          dotnet publish $PROJECT -c Release \
+            -p:AndroidSdkDirectory=$ANDROID_SDK_ROOT \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            "${SIGNING[@]}"
+
+      - name: Rename APK
+        id: apk
+        run: |
+          VERSION=$(grep -oP 'Current\s*=\s*"\K[0-9.]+' HeroesOfIdlestan.Core/State/GameVersion.cs)
+          NAME="HeroesOfIdlestan-$VERSION-${{ github.run_number }}.apk"
+          mv "$PUBLISH_DIR"/*-Signed.apk "$NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: ${{ steps.apk.outputs.name }}
+          if-no-files-found: error

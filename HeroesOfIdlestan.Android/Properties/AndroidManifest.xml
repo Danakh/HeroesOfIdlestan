@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+	<!-- Ajouter ici les permissions dont le jeu a besoin (INTERNET pour un lien, une pub, le cloud…). -->
+	<application android:label="HeroesOfIdlestan" android:allowBackup="true" />
+</manifest>
