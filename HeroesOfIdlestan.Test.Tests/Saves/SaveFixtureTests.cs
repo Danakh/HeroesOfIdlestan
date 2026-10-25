@@ -5,7 +5,7 @@ using HeroesOfIdlestan.Test.Tests.TestUtilities;
 namespace HeroesOfIdlestan.Test.Tests.Saves;
 
 /// <summary>
-/// Niveau 3 — fixtures <c>saves/current/</c>. Chaque étape de scénario repart de la fixture de
+/// Niveau 3 — fixtures <c>Saves/current/</c>. Chaque étape de scénario repart de la fixture de
 /// l'étape précédente : la chaîne prouve qu'une partie sauvegardée à chaque jalon se recharge et
 /// progresse avec le code actuel.
 /// </summary>
@@ -43,7 +43,7 @@ public class CurrentSaveFixtureTests
 }
 
 /// <summary>
-/// Niveau 4 — fixtures <c>saves/release-X.Y/</c> : des sauvegardes réelles de versions livrées.
+/// Niveau 4 — fixtures <c>Saves/release-X.Y/</c> : des sauvegardes réelles de versions livrées.
 /// Chacune doit se charger, faire son round-trip, et tourner une minute de jeu sans erreur.
 /// Tant qu'aucune version n'est sortie, il n'y a rien à vérifier et le test passe.
 /// </summary>
@@ -87,7 +87,7 @@ public class ReleaseSaveFixtureTests
 }
 
 /// <summary>
-/// Régénération de <c>saves/current/</c> — action volontaire, jamais déclenchée par « lancer tous les
+/// Régénération de <c>Saves/current/</c> — action volontaire, jamais déclenchée par « lancer tous les
 /// tests ». À relancer après tout changement de <see cref="GameVersion.Current"/> ou de logique qui
 /// modifie les sauvegardes produites par les scénarios.
 /// </summary>

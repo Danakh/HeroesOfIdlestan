@@ -5,7 +5,7 @@ using HeroesOfIdlestan.Core.Model.State;
 namespace HeroesOfIdlestan.Test.Tests.TestUtilities;
 
 /// <summary>
-/// Accès aux fixtures <c>HeroesOfIdlestan.Test.Tests/saves/{dossier}/{nom}.sav</c>, lues et écrites dans les
+/// Accès aux fixtures <c>HeroesOfIdlestan.Test.Tests/Saves/{dossier}/{nom}.sav</c>, lues et écrites dans les
 /// sources (pas dans bin/) pour être versionnées avec le code.
 ///
 /// <list type="bullet">
@@ -32,7 +32,7 @@ public static class SaveFixtures
         while (dir != null && !File.Exists(Path.Combine(dir.FullName, "HeroesOfIdlestan.slnx")))
             dir = dir.Parent;
         if (dir == null) throw new InvalidOperationException("HeroesOfIdlestan.slnx introuvable au-dessus du dossier de test.");
-        return Path.Combine(dir.FullName, "HeroesOfIdlestan.Test.Tests", "saves");
+        return Path.Combine(dir.FullName, "HeroesOfIdlestan.Test.Tests", "Saves");
     }
 
     public static string PathOf(string folder, string name) => Path.Combine(SavesRoot, folder, name + Extension);

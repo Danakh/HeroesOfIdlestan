@@ -58,7 +58,7 @@ la fixture de l'étape N−1, joue jusqu'à sa condition, vérifie le round-trip
 Chaque fixture est aussi un point de reprise pour déboguer : la copier dans le dossier de données
 du bureau sous le nom `autosave.sav` pour l'ouvrir en jeu.
 
-Les fixtures sont lues et écrites dans `HeroesOfIdlestan.Test.Tests/saves/` (les sources, pas `bin/`), pour
+Les fixtures sont lues et écrites dans `HeroesOfIdlestan.Test.Tests/Saves/` (les sources, pas `bin/`), pour
 être versionnées avec le code.
 
 **Régénérer `current`** — action volontaire, jamais déclenchée par « lancer tous les tests » :
@@ -77,7 +77,7 @@ est déterministe : deux régénérations sans changement de code donnent des fi
 À chaque sortie de version :
 
 ```powershell
-Copy-Item -Recurse HeroesOfIdlestan.Test.Tests\saves\current HeroesOfIdlestan.Test.Tests\saves\release-0.1
+Copy-Item -Recurse HeroesOfIdlestan.Test.Tests\Saves\current HeroesOfIdlestan.Test.Tests\Saves\release-0.1
 ```
 
 Ces dossiers sont **figés à vie** : `SaveFixtures.Write` lève sur tout dossier `release-*`.

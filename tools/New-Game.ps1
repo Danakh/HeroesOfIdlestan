@@ -58,7 +58,7 @@ Get-ChildItem -Path $source -Recurse -Force -File | Where-Object {
 }
 
 # Les fixtures sont brouillées avec une clé qui contient le nom du jeu : on les reconstruit.
-Remove-Item -Recurse -Force (Join-Path $target "$Name.Test.Tests\saves\current") -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force (Join-Path $target "$Name.Test.Tests\Saves\current") -ErrorAction SilentlyContinue
 
 Push-Location $target
 try {

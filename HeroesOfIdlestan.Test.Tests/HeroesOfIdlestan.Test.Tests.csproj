@@ -20,6 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Les fixtures sont lues depuis les sources (voir SaveFixtures.SavesRoot), jamais copiées en sortie. -->
-    <None Remove="saves\**" />
+    <None Remove="Saves\**" />
   </ItemGroup>
 </Project>

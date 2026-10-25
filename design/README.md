@@ -51,7 +51,7 @@ HeroesOfIdlestan.App.Desktop/       head bureau (+ NativeAudioService, partagé 
 HeroesOfIdlestan.App.Browser/       head WebAssembly (+ wwwroot/)
 HeroesOfIdlestan.App.Android/       head Android (hors .slnx)
 HeroesOfIdlestan.Tool.Animation/    banc d'essai des animations (Avalonia, bureau)
-HeroesOfIdlestan.Test.Tests/        tests xUnit + saves/ (fixtures)
+HeroesOfIdlestan.Test.Tests/        tests xUnit + Saves/ (fixtures)
 assets/sounds/                      générateur des bruitages
 assets/animation/                   squelettes, habillages SVG et animations (voir 07)
 tools/New-Game.ps1                  crée un nouveau jeu à partir du squelette
