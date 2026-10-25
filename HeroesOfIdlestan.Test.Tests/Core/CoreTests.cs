@@ -3,6 +3,7 @@ using HeroesOfIdlestan.Core.Controller.Modifiers;
 using HeroesOfIdlestan.Core.Controller.Simulation;
 using HeroesOfIdlestan.Core.Model.Diagnostics;
 using HeroesOfIdlestan.Core.Model.Obfuscation;
+using HeroesOfIdlestan.Core.Model.Persistence;
 using HeroesOfIdlestan.Core.Model.State;
 
 namespace HeroesOfIdlestan.Test.Tests.CoreTests;
@@ -75,18 +76,23 @@ public class TickCooldownTests
     }
 
     [Fact]
-    public void ProductionIsIndependentOfChunkSize()
+    public void CombatIsIndependentOfChunkSize()
     {
-        // Ce que garantit TickCooldown : un saut de temps en grosses tranches produit autant que le temps réel.
+        // Un saut de temps en une seule tranche doit donner exactement la même partie que le temps réel.
         var small = new GameController();
         small.NewGame(seed: 5);
-        small.SimulateTicks(10_000, chunkTicks: 1);
+        small.SimulateTicks(60_000, chunkTicks: 1);
 
         var large = new GameController();
         large.NewGame(seed: 5);
-        large.SimulateTicks(10_000, chunkTicks: 10_000);
+        large.SimulateTicks(60_000, chunkTicks: 60_000);
 
-        Assert.Equal<long>(small.State.Gold, large.State.Gold);
+        Assert.True(small.State.Run.HighestZone > 1);
+        // Les succès sont évalués en fin de passage : leur événement porte le tick de fin de tranche.
+        // Seul le journal en dépend ; on compare tout le reste.
+        small.State.Events.Entries.Clear();
+        large.State.Events.Entries.Clear();
+        Assert.Equal(SaveCodec.Decode(small.Export()), SaveCodec.Decode(large.Export()));
     }
 }
 

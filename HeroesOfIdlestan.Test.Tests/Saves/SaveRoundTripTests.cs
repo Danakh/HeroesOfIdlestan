@@ -1,5 +1,4 @@
 using HeroesOfIdlestan.Core.Controller;
-using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Model.Persistence;
 using HeroesOfIdlestan.Core.Model.State;
 using HeroesOfIdlestan.Test.Tests.TestUtilities;
@@ -22,12 +21,9 @@ public class SaveRoundTripTests
     {
         var c = new GameController();
         c.NewGame(seed: 7);
-        for (int i = 0; i < 300; i++)
-        {
-            c.SimulateTicks(100);
-            c.TryBuyProducer();
-        }
-        Assert.True(c.State.Entities.Count > 1);
+        c.SimulateTicks(30_000);
+        Assert.True(c.State.Run.HighestZone > 1);
+        Assert.True(c.State.Heroes[0].Level > 1);
 
         var reloaded = new GameController();
         reloaded.Load(SaveFixtures.AssertRoundTrip(c));
@@ -35,15 +31,18 @@ public class SaveRoundTripTests
         Assert.Equal<long>(c.State.Gold, reloaded.State.Gold);
         Assert.Equal(c.State.Clock.CurrentTick, reloaded.State.Clock.CurrentTick);
         Assert.Equal(c.State.Prng.State, reloaded.State.Prng.State);
-        Assert.Equal(c.State.Entities.Count, reloaded.State.Entities.Count);
-        Assert.All(reloaded.State.Entities, e => Assert.IsType<ProducerEntity>(e));
+        Assert.Equal(c.State.Run.Zone, reloaded.State.Run.Zone);
+        Assert.Equal(c.State.Run.Phase, reloaded.State.Run.Phase);
+        Assert.Equal(c.State.Heroes[0].Level, reloaded.State.Heroes[0].Level);
+        Assert.Equal<long>(c.State.Heroes[0].Xp, reloaded.State.Heroes[0].Xp);
+        Assert.Equal(c.State.Monsters.Count, reloaded.State.Monsters.Count);
         Assert.Equal(c.State.CompletedAchievements, reloaded.State.CompletedAchievements);
     }
 
     [Fact]
     public void ReloadedGame_ContinuesExactlyLikeTheOriginal()
     {
-        // Le déterminisme survit à la sauvegarde : PRNG et cooldowns sont persistés.
+        // Le déterminisme survit à la sauvegarde : PRNG, phase du run et prochaines actions sont persistés.
         var original = new GameController();
         original.NewGame(seed: 99);
         original.SimulateTicks(5_000);
@@ -52,7 +51,7 @@ public class SaveRoundTripTests
         reloaded.Load(original.Export());
 
         foreach (var c in new[] { original, reloaded })
-            for (int i = 0; i < 50; i++) { c.SimulateTicks(250); c.TryBuyProducer(); }
+            for (int i = 0; i < 50; i++) { c.SimulateTicks(250); c.SetAutoAdvance(i % 10 != 0); }
 
         Assert.Equal(SaveCodec.Decode(original.Export()), SaveCodec.Decode(reloaded.Export()));
     }

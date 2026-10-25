@@ -12,7 +12,7 @@ toute modification du modèle persisté passe par eux.
   main). Ajouter un format sans jamais retirer la lecture d'un ancien.
 - `SaveService` : estampille, migrations, polymorphisme. `Serialize` ne touche ni à l'horloge ni à
   `LastSaveTime` : c'est ce qui permet d'exiger un round-trip identique octet pour octet.
-- `PolymorphicRegistry` : table unique discriminant → type, écrite `"$kind": "Producer"`.
+- `PolymorphicRegistry` : table unique discriminant → type, écrite `"$kind": "Hero"`.
 - Une sauvegarde illisible lève `SaveCorruptedException`. Au démarrage, `GameRuntime` la met de côté
   (`autosave.corrupted.sav`) au lieu de l'écraser.
 
@@ -64,7 +64,7 @@ Les fixtures sont lues et écrites dans `HeroesOfIdlestan.Test.Tests/Saves/` (le
 **Régénérer `current`** — action volontaire, jamais déclenchée par « lancer tous les tests » :
 
 ```powershell
-$env:BLANK_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter "FullyQualifiedName~Rebuild_Current_Saves"
+$env:GAME_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter "FullyQualifiedName~Rebuild_Current_Saves"
 ```
 
 À faire quand `GameVersion.Current` change, quand un scénario change, ou quand une règle de jeu

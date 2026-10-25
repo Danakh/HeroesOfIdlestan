@@ -13,7 +13,7 @@ public class SaveCodecTests
 {
     /// <summary>Format 0 : JSON brut, tel qu'on l'écrit à la main pour un test ou un débogage.</summary>
     private const string RawJsonSave =
-        """{"SavedGameVersion":"0.1.0","Gold":42,"Entities":[{"$kind":"Producer","Level":3,"X":1,"Y":2}]}""";
+        """{"SavedGameVersion":"0.1.0","Gold":42,"Heroes":[{"Class":"Warrior","Level":3,"Health":50}]}""";
 
     [Fact]
     public void Format0_RawJson_IsReadable()
@@ -22,8 +22,10 @@ public class SaveCodecTests
         c.Load(RawJsonSave);
 
         Assert.Equal<long>(42, c.State.Gold);
-        var producer = Assert.IsType<ProducerEntity>(Assert.Single(c.State.Entities));
-        Assert.Equal(3, producer.Level);
+        var warrior = Assert.Single(c.State.Heroes);
+        Assert.Equal(HeroClass.Warrior, warrior.Class);
+        Assert.Equal(3, warrior.Level);
+        Assert.Equal<long>(50, warrior.Health);
     }
 
     [Fact]
@@ -54,12 +56,13 @@ public class SaveCodecTests
         Assert.Throws<SaveCorruptedException>(() => c.Load(content));
     }
 
+    /// <summary>Une valeur d'enum renommée sans migration rend la sauvegarde illisible : jamais à moitié chargée.</summary>
     [Fact]
-    public void UnknownEntityKind_ThrowsSaveCorrupted()
+    public void UnknownEnumValue_ThrowsSaveCorrupted()
     {
         var c = new GameController();
         Assert.Throws<SaveCorruptedException>(() =>
-            c.Load("""{"Entities":[{"$kind":"Dragon"}]}"""));
+            c.Load("""{"Heroes":[{"Class":"Dragon"}]}"""));
     }
 
     [Fact]

@@ -21,7 +21,7 @@ qui sauvegarde une dernière fois. Pour Linux et macOS, publier avec `-r linux-x
 
 ## Browser (WebAssembly)
 
-- `Program.Main` charge d'abord le module d'interop (`wwwroot/blankInterop.js`), puis démarre
+- `Program.Main` charge d'abord le module d'interop (`wwwroot/gameInterop.js`), puis démarre
   Avalonia dans `<div id="out">`.
 - Le stockage est **synchrone** (localStorage) : le WASM n'a qu'un thread, une promesse attendue en
   bloquant gèlerait la page.
@@ -58,7 +58,7 @@ Sans keystore, l'APK est signé avec la clé de debug de la machine : il s'insta
 ailleurs (la CI comprise) refusera de s'installer par-dessus. Pour une clé de publication :
 
 ```powershell
-keytool -genkeypair -v -keystore release.keystore -alias blank -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkeypair -v -keystore release.keystore -alias game -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 Dans GitHub (*Settings > Secrets and variables > Actions*), créer `ANDROID_KEYSTORE_BASE64` (le

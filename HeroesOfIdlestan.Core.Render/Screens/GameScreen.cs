@@ -23,15 +23,15 @@ public interface IScreen : IDisposable
     void ResetInput();
 }
 
-/// <summary>Écran du monde : caméra, input, pipeline de renderers. Garder-le mince : la logique va dans les services.</summary>
+/// <summary>Écran du combat : caméra, input, pipeline de renderers. Garder-le mince : la logique va dans les services.</summary>
 public sealed class GameScreen : IScreen
 {
     private readonly GameController _game;
     private readonly Camera2D _camera = new();
     private readonly InputRouter _input;
     private readonly RenderPipeline _renderers = new RenderPipeline()
-        .Add(new GridRenderer())
-        .Add(new EntityRenderer());
+        .Add(new GroundRenderer())
+        .Add(new FighterRenderer());
     private bool _framed;
 
     public GameScreen(GameController game)
@@ -48,7 +48,7 @@ public sealed class GameScreen : IScreen
         _camera.SetViewport(size);
         if (!_framed && size.Width > 0)
         {
-            _camera.Fit(SKRect.Create(-200, -200, 400, 400));
+            _camera.Fit(BattleLayout.Bounds);
             _framed = true;
         }
 

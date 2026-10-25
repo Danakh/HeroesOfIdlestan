@@ -4,17 +4,17 @@ namespace HeroesOfIdlestan.App.Browser.Services;
 
 /// <summary>
 /// Pont vers les APIs du navigateur qu'Avalonia n'expose pas : stockage local, visibilité de l'onglet,
-/// Web Audio. Le module JS est <c>wwwroot/blankInterop.js</c>.
+/// Web Audio. Le module JS est <c>wwwroot/gameInterop.js</c>.
 /// </summary>
 internal static partial class BrowserInterop
 {
-    private const string Module = "blankInterop";
+    private const string Module = "gameInterop";
 
     /// <summary>
     /// Charge le module d'interop, <b>avant</b> de démarrer Avalonia : le runtime lit la sauvegarde dès
     /// sa construction. Chemin relatif à dotnet.js, qui vit dans <c>_framework/</c>.
     /// </summary>
-    public static Task InitializeAsync() => JSHost.ImportAsync(Module, "../blankInterop.js");
+    public static Task InitializeAsync() => JSHost.ImportAsync(Module, "../gameInterop.js");
 
     // ── Stockage local (synchrone : le WASM n'a qu'un thread) ────────────
 

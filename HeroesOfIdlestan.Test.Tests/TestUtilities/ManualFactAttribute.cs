@@ -1,12 +1,12 @@
 namespace HeroesOfIdlestan.Test.Tests.TestUtilities;
 
 /// <summary>
-/// Test sauté sauf si <c>BLANK_MANUAL_TESTS=1</c>. Réservé aux actions volontaires, comme la
+/// Test sauté sauf si <c>GAME_MANUAL_TESTS=1</c>. Réservé aux actions volontaires, comme la
 /// régénération des fixtures : « lancer tous les tests » ne doit jamais réécrire de sauvegarde.
 /// </summary>
 public sealed class ManualFactAttribute : FactAttribute
 {
-    public const string EnvironmentVariable = "BLANK_MANUAL_TESTS";
+    public const string EnvironmentVariable = "GAME_MANUAL_TESTS";
 
     public ManualFactAttribute()
     {

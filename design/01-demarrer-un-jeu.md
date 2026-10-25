@@ -26,7 +26,7 @@ git init; git add .; git commit -m "Squelette MyGame"
 dotnet run --project MyGame.Desktop
 ```
 
-Le jeu d'exemple doit tourner : un cercle doré qui pulse, de l'or qui monte, un bouton d'achat.
+Le jeu doit tourner : un guerrier (G) qui enchaîne les rats (R), zone après zone.
 
 ## 2. Fixer ce qui ne pourra plus changer
 
@@ -45,18 +45,24 @@ Changer la clé de brouillage impose de régénérer les fixtures `current` (voi
 
 ## 3. Remplacer le contenu d'exemple
 
-Le contenu d'exemple est volontairement petit et repérable. À retirer ou remplacer :
+Dans HeroesOfIdlestan, c'est fait : le contenu d'exemple du squelette (des producteurs qui
+rapportaient de l'or) a laissé place à la boucle courte du [GDD](Gamedesign.md) — un guerrier contre
+un rat, combat → repos → zone suivante. Le jeu se trouve ici :
 
-| Fichier | Contenu d'exemple |
+| Fichier | Contenu |
 |---|---|
-| `Core.Model/Entities/Entity.cs` | `ProducerEntity`, valeur `EntityKind.Producer` |
-| `Core.Controller/Content/SampleContent.cs` | `ProductionSystem`, coûts, succès d'exemple |
-| `Core.Model/State/GameState.cs` | `Gold`, section « Contenu d'exemple » |
-| `Core.Controller/GameController.cs` | `NewGame` (état initial), `TryBuyProducer` |
-| `Core.Render/Renderers/SampleRenderers.cs` | `EntityRenderer` (`GridRenderer` est réutilisable) |
+| `Core.Model/Entities/Entity.cs` | `HeroEntity`, `MonsterEntity`, classes et espèces |
+| `Core.Model/State/RunState.cs` | Zone, phase (combat ou repos), avance automatique |
+| `Core.Controller/Content/GameContent.cs` | Statistiques, actions par ligne, récompenses, XP, succès |
+| `Core.Controller/Combat/Formation.cs` | Positions en demi-cases, distances, ciblage (GDD §3.4, §4.3, §4.4) |
+| `Core.Controller/Combat/CombatSystem.cs` | La boucle courte, simulée par événements |
+| `Core.Controller/GameController.cs` | `NewGame` (état initial), `SetAutoAdvance` |
+| `Core.Render/Renderers/BattleRenderers.cs` | Le champ de bataille et les combattants |
 | `Core.Render/Runtime/Snapshots.cs` + `Core.UI/ViewModels/HudViewModel.cs` + `Core.UI/Views/HudView.cs` | Le HUD |
 | `Core.Render/Audio/GameAudioService.cs` | `OnGameEvent` : la table événement → son |
-| `Test.Tests/TestUtilities/Scenarios.cs` | `SampleScenarios` |
+| `Test.Tests/TestUtilities/Scenarios.cs` | `GameScenarios` |
+
+Pour un autre jeu créé depuis ce dépôt, ces fichiers sont ceux à remplacer.
 
 Ordre conseillé, pour garder les tests verts à chaque étape :
 
@@ -68,7 +74,7 @@ Ordre conseillé, pour garder les tests verts à chaque étape :
    via `GameRuntimeHost.Invoke`.
 4. **Rendu** : des `IGameRenderer` ajoutés au pipeline de `GameScreen`.
 5. **UI** : un snapshot (record) par panneau, un ViewModel qui le reçoit, une vue qui s'y lie.
-6. **Scénarios** : réécrire `SampleScenarios` avec les jalons du vrai jeu (premier bâtiment,
+6. **Scénarios** : réécrire `GameScenarios` avec les jalons du vrai jeu (premier bâtiment,
    première ressource avancée, premier prestige…), puis régénérer les fixtures.
 7. Supprimer le contenu d'exemple devenu inutile.
 

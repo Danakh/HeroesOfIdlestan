@@ -6,5 +6,6 @@ namespace HeroesOfIdlestan.Core.Model.Entities;
 public static class EntityRegistry
 {
     public static readonly PolymorphicRegistry<EntityKind, Entity> Instance = new PolymorphicRegistry<EntityKind, Entity>()
-        .Register<ProducerEntity>(EntityKind.Producer);
+        .Register<HeroEntity>(EntityKind.Hero)
+        .Register<MonsterEntity>(EntityKind.Monster);
 }

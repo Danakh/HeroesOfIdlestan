@@ -20,16 +20,18 @@ public sealed class HudView : Border
         var gold = new TextBlock { FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center };
         gold.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.GoldLabel)));
 
-        var producers = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
-        producers.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.ProducersLabel)));
+        var zone = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+        zone.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.ZoneLabel)));
+
+        var hero = new TextBlock { VerticalAlignment = VerticalAlignment.Center };
+        hero.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.HeroLabel)));
 
         var bank = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Foreground = Brushes.Gray };
         bank.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.BankLabel)));
 
-        var buy = new Button();
-        buy.Bind(ContentControl.ContentProperty, new Binding(nameof(HudViewModel.BuyLabel)));
-        buy.Bind(IsEnabledProperty, new Binding(nameof(HudViewModel.CanBuy)));
-        buy.Click += (_, _) => viewModel.BuyProducer();
+        var autoAdvance = new Button();
+        autoAdvance.Bind(ContentControl.ContentProperty, new Binding(nameof(HudViewModel.AutoAdvanceLabel)));
+        autoAdvance.Click += (_, _) => viewModel.ToggleAutoAdvance();
 
         var pause = new Button();
         pause.Bind(ContentControl.ContentProperty, new Binding(nameof(HudViewModel.PauseLabel)));
@@ -56,7 +58,7 @@ public sealed class HudView : Border
         {
             Orientation = Orientation.Horizontal,
             Spacing = 16,
-            Children = { gold, producers, buy, pause, speeds, bank, save, sound },
+            Children = { gold, zone, hero, autoAdvance, pause, speeds, bank, save, sound },
         };
     }
 }

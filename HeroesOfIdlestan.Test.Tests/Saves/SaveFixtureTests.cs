@@ -15,7 +15,7 @@ public class CurrentSaveFixtureTests
     public static TheoryData<string, int> Steps()
     {
         var data = new TheoryData<string, int>();
-        foreach (var scenario in SampleScenarios.All)
+        foreach (var scenario in GameScenarios.All)
             for (int i = 0; i < scenario.Steps.Count; i++)
                 data.Add(scenario.Name, i);
         return data;
@@ -25,14 +25,14 @@ public class CurrentSaveFixtureTests
     [MemberData(nameof(Steps))]
     public void Step_ReplaysFromPreviousFixture(string scenarioName, int index)
     {
-        var scenario = SampleScenarios.All.Single(s => s.Name == scenarioName);
+        var scenario = GameScenarios.All.Single(s => s.Name == scenarioName);
         ScenarioRunner.RunStep(scenario, index, SaveFixtures.CurrentFolder, save: false);
     }
 
     [Fact]
     public void EveryExpectedFixture_Exists_AtCurrentVersion()
     {
-        var expected = SampleScenarios.All.SelectMany(s => s.Steps).Select(s => s.SaveName).ToList();
+        var expected = GameScenarios.All.SelectMany(s => s.Steps).Select(s => s.SaveName).ToList();
         foreach (var name in expected)
             SaveFixtures.Load(SaveFixtures.CurrentFolder, name); // vérifie présence + version
 
@@ -97,13 +97,13 @@ public class SaveFixtureGeneratorTests
     [ManualFact]
     public void Rebuild_Current_Saves()
     {
-        foreach (var scenario in SampleScenarios.All)
+        foreach (var scenario in GameScenarios.All)
             for (int i = 0; i < scenario.Steps.Count; i++)
                 ScenarioRunner.RunStep(scenario, i, SaveFixtures.CurrentFolder, save: true);
 
         // Le ménage vient après : chaque fixture a été remplacée atomiquement pendant la boucle.
         SaveFixtures.Prune(SaveFixtures.CurrentFolder,
-            SampleScenarios.All.SelectMany(s => s.Steps).Select(s => s.SaveName));
+            GameScenarios.All.SelectMany(s => s.Steps).Select(s => s.SaveName));
     }
 }
 

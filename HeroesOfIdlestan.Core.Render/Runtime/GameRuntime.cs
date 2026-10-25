@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using HeroesOfIdlestan.Core.Controller;
+using HeroesOfIdlestan.Core.Controller.Content;
 using HeroesOfIdlestan.Core.Controller.Platform;
 using HeroesOfIdlestan.Core.Model.Diagnostics;
 using HeroesOfIdlestan.Core.Model.Localization;
@@ -76,6 +77,10 @@ public sealed class GameRuntime : IDisposable
             {
                 _loading = true;
                 Game.Load(content);
+                // Une partie sans équipe (sauvegarde du contenu d'exemple du squelette) ne jouerait
+                // jamais : elle est mise de côté comme une sauvegarde illisible.
+                if (Game.State.Heroes.Count == 0)
+                    throw new SaveCorruptedException("Sauvegarde sans équipe.");
                 Game.State.Clock.CreditOfflineTime(_now());
                 _store.Connect(Game.Achievements, Game.State);
                 return;
@@ -155,7 +160,7 @@ public sealed class GameRuntime : IDisposable
 
     public void SetSpeed(int speed) => Game.State.Clock.SetSpeed(speed);
 
-    public bool BuyProducer() => Game.TryBuyProducer();
+    public void ToggleAutoAdvance() => Game.SetAutoAdvance(!Game.State.Run.AutoAdvance);
 
     public void ToggleSound() => Audio.Enabled = !Audio.Enabled;
 
@@ -164,16 +169,20 @@ public sealed class GameRuntime : IDisposable
     public HudSnapshot GetHudSnapshot()
     {
         var s = Game.State;
-        long cost = Game.NextProducerCost;
+        // Une seule ligne de héros dans le HUD tant que l'équipe se limite au personnage de départ.
+        var lead = s.Heroes.Count > 0 ? s.Heroes[0] : null;
+        int level = lead?.Level ?? 0;
         return new HudSnapshot(
             s.Clock.IsPaused,
             s.Clock.ActiveSpeed,
             s.Gold,
             s.Clock.OfflineBankTicks / GameClock.TicksPerSecond,
-            s.Entities.Count,
-            cost,
-            s.Gold >= cost,
-            s.CompletedAchievements.Count,
+            s.Run.Zone,
+            s.Run.HighestZone,
+            s.Run.AutoAdvance,
+            level,
+            lead?.Xp ?? 0,
+            level is > 0 and < GameContent.MaxLevel ? GameContent.XpToNextLevel(level) : 0,
             Audio.IsAvailable,
             Audio.Enabled);
     }

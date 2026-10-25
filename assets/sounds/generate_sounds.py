@@ -75,9 +75,31 @@ def achievement_unlocked():
     return finish(s, fade=0.08)
 
 
+def zone_cleared():
+    s = tone(660, 0.12, 0.35)
+    return finish(mix_at(s, tone(990, 0.16, 0.30), 0.06))
+
+
+def fight_lost():
+    s = []
+    for i, f in enumerate([392.0, 329.63, 261.63]):
+        mix_at(s, tone(f, 0.35, 0.35), i * 0.14)
+    return finish(s, fade=0.08)
+
+
+def level_up():
+    s = []
+    for i, f in enumerate([523.25, 783.99, 1046.5]):
+        mix_at(s, tone(f, 0.25, 0.30), i * 0.06)
+    return finish(s, fade=0.05)
+
+
 SOUNDS = {
     "ui_confirm": ui_confirm,
     "achievement_unlocked": achievement_unlocked,
+    "zone_cleared": zone_cleared,
+    "fight_lost": fight_lost,
+    "level_up": level_up,
 }
 
 

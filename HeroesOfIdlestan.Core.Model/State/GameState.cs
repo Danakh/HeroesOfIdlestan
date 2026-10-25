@@ -25,13 +25,21 @@ public sealed class GameState
     /// <summary>PRNG de gameplay : tous les autres tirages.</summary>
     public GamePrng Prng { get; set; } = new(2);
 
-    // ── Contenu d'exemple — à remplacer par celui du jeu ─────────────────
+    // ── Jeu ──────────────────────────────────────────────────────────────
 
-    /// <summary>Ressource d'exemple, brouillée en mémoire car lue par le joueur.</summary>
+    /// <summary>Or gagné en combat (GDD §6.3), brouillé en mémoire car lu par le joueur.</summary>
     public ObfLong Gold { get; set; }
 
-    /// <summary>Entités polymorphes, sérialisées via <see cref="Entities.EntityRegistry"/>.</summary>
-    public List<Entity> Entities { get; set; } = [];
+    public RunState Run { get; set; } = new();
+
+    /// <summary>
+    /// L'équipe du joueur, morts compris : un mort sort de la formation (sa ligne se resserre) mais
+    /// reste recruté. L'ordre de la liste est l'ordre « de haut en bas » de chaque ligne.
+    /// </summary>
+    public List<HeroEntity> Heroes { get; set; } = [];
+
+    /// <summary>Le groupe de monstres du combat en cours ; un monstre tué en est retiré.</summary>
+    public List<MonsterEntity> Monsters { get; set; } = [];
 
     // ── Méta ─────────────────────────────────────────────────────────────
 

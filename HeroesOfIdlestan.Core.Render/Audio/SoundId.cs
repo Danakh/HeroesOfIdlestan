@@ -16,4 +16,10 @@ public enum SoundId
     UiConfirm,
     /// <summary>Succès débloqué.</summary>
     AchievementUnlocked,
+    /// <summary>Combat gagné : court, il revient toutes les quelques secondes.</summary>
+    ZoneCleared,
+    /// <summary>Toute l'équipe est morte.</summary>
+    FightLost,
+    /// <summary>Un personnage monte de niveau.</summary>
+    LevelUp,
 }

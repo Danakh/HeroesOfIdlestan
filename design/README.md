@@ -1,9 +1,10 @@
 # HeroesOfIdlestan — design
 
-HeroesOfIdlestan est un squelette de jeu 2D en C# (.NET 10) : simulation au tick, sauvegardes testées,
-rendu SkiaSharp, interface Avalonia, sons, et trois plateformes (bureau, web, Android). Il ne
-contient aucune règle de jeu : le contenu d'exemple (des producteurs qui rapportent de l'or)
-n'existe que pour que tout tourne, se sauvegarde et produise des fixtures de test.
+HeroesOfIdlestan est un idle / autobattler 2D en C# (.NET 10), bâti sur un squelette : simulation au
+tick, sauvegardes testées, rendu SkiaSharp, interface Avalonia, sons, et trois plateformes (bureau,
+web, Android). Les règles du jeu sont dans le [GDD](Gamedesign.md) ; la version actuelle en implémente
+la boucle minimale : un guerrier contre un rat, combat → repos → zone suivante, recul et arrêt de
+l'avance automatique en cas de défaite.
 
 Il est extrait de l'architecture de SettlersOfIdlestan.
 
@@ -18,6 +19,7 @@ Il est extrait de l'architecture de SettlersOfIdlestan.
 | [05 — Plateformes](05-plateformes.md) | Les heads Desktop, Browser et Android, et ce que chacun fournit |
 | [06 — Déploiement web](06-deploiement-web.md) | Publier la version web sur GitHub Pages |
 | [07 — Animation](07-animation.md) | Squelettes, habillages SVG, format des animations, outil de test |
+| [Game design](Gamedesign.md) | Les règles du jeu : formation, combat, classes, progression |
 
 ## Commandes
 
@@ -34,7 +36,7 @@ python assets/sounds/generate_sounds.py                     # régénère les WA
 Régénérer les fixtures de sauvegarde (action volontaire, voir 03) :
 
 ```powershell
-$env:BLANK_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter "FullyQualifiedName~Rebuild_Current_Saves"
+$env:GAME_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter "FullyQualifiedName~Rebuild_Current_Saves"
 ```
 
 ## Arborescence

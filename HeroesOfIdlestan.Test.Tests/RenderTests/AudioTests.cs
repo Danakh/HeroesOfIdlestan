@@ -39,7 +39,7 @@ public class GameAudioServiceTests
     public void WithoutOutput_IsSilentAndDoesNotThrow()
     {
         var audio = new GameAudioService(null);
-        audio.OnGameEvent(new GameEvent(0, "producer_bought"));
+        audio.OnGameEvent(new GameEvent(0, "fight_won", "1"));
         Assert.False(audio.IsAvailable);
     }
 

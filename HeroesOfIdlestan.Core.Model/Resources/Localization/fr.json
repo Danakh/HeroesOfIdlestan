@@ -1,8 +1,6 @@
 {
   "app_title": "HeroesOfIdlestan",
   "ui_gold": "Or : {0}",
-  "ui_producers": "Producteurs : {0}",
-  "ui_buy_producer": "Acheter un producteur ({0} or)",
   "ui_pause": "Pause",
   "ui_play": "Lecture",
   "ui_bank": "Banque : {0} s",
@@ -11,5 +9,12 @@
   "ui_sound_off": "Son : coupé",
   "ui_new_game": "Nouvelle partie",
   "event_achievement_unlocked": "Succès obtenu : {0}",
-  "event_producer_bought": "Producteur acheté"
+  "ui_zone": "Zone {0} (record {1})",
+  "ui_warrior_level": "Guerrier niv. {0} — XP {1}/{2}",
+  "ui_warrior_level_max": "Guerrier niv. {0} (max)",
+  "ui_auto_advance_on": "Avance auto : activée",
+  "ui_auto_advance_off": "Avance auto : coupée",
+  "event_fight_won": "Zone {0} gagnée",
+  "event_fight_lost": "Défaite en zone {0}",
+  "event_hero_level_up": "Niveau {0} atteint"
 }

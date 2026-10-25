@@ -54,7 +54,7 @@ public class InvariantTests
     public void SimulationPipeline_HasTheDeclaredOrder()
     {
         var c = new GameController();
-        Assert.Equal(["Production", "Achievements"], c.Pipeline.Names);
+        Assert.Equal(["Combat", "Achievements"], c.Pipeline.Names);
     }
 
     [Fact]

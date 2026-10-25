@@ -22,7 +22,7 @@ public static class SaveFixtures
     public const string Extension = ".sav";
 
     public const string RegenerateCommand =
-        "$env:BLANK_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter \"FullyQualifiedName~Rebuild_Current_Saves\"";
+        "$env:GAME_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter \"FullyQualifiedName~Rebuild_Current_Saves\"";
 
     public static string SavesRoot { get; } = FindSavesRoot();
 

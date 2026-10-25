@@ -65,9 +65,9 @@ try {
     dotnet build "$Name.slnx"
     if ($LASTEXITCODE -ne 0) { throw 'Le build a échoué.' }
 
-    $env:BLANK_MANUAL_TESTS = '1'
+    $env:GAME_MANUAL_TESTS = '1'
     dotnet test "$Name.Test.Tests" --no-build --filter "FullyQualifiedName~Rebuild_Current_Saves"
-    Remove-Item Env:BLANK_MANUAL_TESTS
+    Remove-Item Env:GAME_MANUAL_TESTS
     if ($LASTEXITCODE -ne 0) { throw 'La régénération des fixtures a échoué.' }
 
     if (-not $SkipTests) {

@@ -12,8 +12,8 @@ namespace HeroesOfIdlestan.Core.Render.Audio;
 ///
 /// <para>Garde-fous, à garder quand le jeu grossit :</para>
 /// <list type="number">
-/// <item>un intervalle minimum par son (<see cref="MinInterval"/>) : cent producteurs ne doivent pas
-/// produire cent sons dans la même frame ;</item>
+/// <item>un intervalle minimum par son (<see cref="MinInterval"/>) : un saut de temps en vitesse x10 ne
+/// doit pas enchaîner cent victoires sonores ;</item>
 /// <item>la suppression pendant un saut de temps ou un chargement (<see cref="Suppressed"/>) ;</item>
 /// <item>le silence en arrière-plan si le joueur le veut, avec mise en veille de la sortie (sur
 /// Android, un flux ouvert même muet vide la batterie).</item>
@@ -64,7 +64,9 @@ public sealed class GameAudioService : IDisposable
     {
         switch (gameEvent.Type)
         {
-            case "producer_bought": Play(SoundId.UiConfirm); break;
+            case "fight_won": Play(SoundId.ZoneCleared); break;
+            case "fight_lost": Play(SoundId.FightLost); break;
+            case "hero_level_up": Play(SoundId.LevelUp); break;
             case "achievement_unlocked": Play(SoundId.AchievementUnlocked); break;
         }
     }
@@ -94,6 +96,7 @@ public sealed class GameAudioService : IDisposable
     private static float Mix(SoundId id) => id switch
     {
         SoundId.UiConfirm => 0.6f,
+        SoundId.ZoneCleared => 0.4f,
         _ => 1f,
     };
 

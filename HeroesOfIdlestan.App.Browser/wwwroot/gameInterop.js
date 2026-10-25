@@ -7,17 +7,17 @@
 
 export function getStorageItem(key) {
     try { return localStorage.getItem(key); }
-    catch (e) { console.error('[Blank] lecture localStorage impossible', e); return null; }
+    catch (e) { console.error('[HeroesOfIdlestan] lecture localStorage impossible', e); return null; }
 }
 
 export function setStorageItem(key, value) {
     try { localStorage.setItem(key, value); }
-    catch (e) { console.error('[Blank] écriture localStorage impossible', e); }
+    catch (e) { console.error('[HeroesOfIdlestan] écriture localStorage impossible', e); }
 }
 
 export function removeStorageItem(key) {
     try { localStorage.removeItem(key); }
-    catch (e) { console.error('[Blank] suppression localStorage impossible', e); }
+    catch (e) { console.error('[HeroesOfIdlestan] suppression localStorage impossible', e); }
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ function ensureAudioContext() {
         resumeOnGesture();
         return audioContext;
     } catch (e) {
-        console.error('[Blank] AudioContext indisponible', e);
+        console.error('[HeroesOfIdlestan] AudioContext indisponible', e);
         return null;
     }
 }
@@ -88,7 +88,7 @@ export function audioLoad(name, wav) {
     const copy = new Uint8Array(wav).buffer;
     ctx.decodeAudioData(copy)
         .then((buffer) => audioBuffers.set(name, buffer))
-        .catch((e) => console.error('[Blank] WAV illisible : ' + name, e));
+        .catch((e) => console.error('[HeroesOfIdlestan] WAV illisible : ' + name, e));
 }
 
 export function audioPlay(name, volume) {

@@ -30,7 +30,7 @@ jouer et quand ; chaque head fournit une sortie `IAudioService` qui sait comment
 - **Le Core ne connaît pas les sons.** Il écrit des événements ; la couche Render les traduit.
 - **Sons courts** (< 1 s) avec fondu de fin : ce sont des retours d'interface. La musique demanderait
   un autre chemin (flux plutôt qu'échantillons en mémoire).
-- **Garde-fous** : intervalle minimum par son (cent producteurs ne font pas cent sons dans la même
+- **Garde-fous** : intervalle minimum par son (cent victoires en vitesse x10 ne font pas cent sons dans la même
   frame), silence pendant un chargement (`Suppressed`), silence en arrière-plan si le joueur le veut.
 - **Jamais bloquant.** `IAudioService.Play` est appelé sous le verrou du runtime, sur le thread UI :
   il ne doit jamais attendre. `NativeAudioService` abandonne le son si son verrou de mixage est pris.
@@ -43,7 +43,7 @@ jouer et quand ; chaque head fournit une sortie `IAudioService` qui sait comment
 |---|---|---|
 | Desktop | `NativeAudioService` (SoundFlow / miniaudio) | Mixage maison de 12 voix ; fenêtre sans focus = arrière-plan |
 | Android | `NativeAudioService`, fichier lié depuis Desktop | Muet par défaut en arrière-plan ; la sortie est mise en veille (batterie) |
-| Browser | `BrowserAudioService` → `wwwroot/blankInterop.js` | Aucun son avant le premier clic ou la première touche (règle des navigateurs) ; onglet caché = arrière-plan |
+| Browser | `BrowserAudioService` → `wwwroot/gameInterop.js` | Aucun son avant le premier clic ou la première touche (règle des navigateurs) ; onglet caché = arrière-plan |
 
 ## À ajouter selon le jeu
 

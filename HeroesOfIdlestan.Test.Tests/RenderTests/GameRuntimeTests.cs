@@ -15,7 +15,8 @@ public class GameRuntimeTests
         var files = new InMemoryFileSystem();
         using var runtime = new GameRuntime(files, now: () => T0);
         Assert.NotNull(files.ReadText(GameRuntime.AutosaveFileName));
-        Assert.Single(runtime.Game.State.Entities);
+        Assert.Single(runtime.Game.State.Heroes);
+        Assert.Single(runtime.Game.State.Monsters);
     }
 
     [Fact]

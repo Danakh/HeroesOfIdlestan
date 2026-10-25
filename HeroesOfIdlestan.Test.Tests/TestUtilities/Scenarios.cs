@@ -1,4 +1,5 @@
 using HeroesOfIdlestan.Core.Controller;
+using HeroesOfIdlestan.Core.Controller.Content;
 using HeroesOfIdlestan.Core.Model.State;
 
 namespace HeroesOfIdlestan.Test.Tests.TestUtilities;
@@ -49,7 +50,7 @@ public static class ScenarioRunner
         {
             Assert.True(++iterations <= step.MaxIterations,
                 $"{scenario.Name}/{step.SaveName} : condition non atteinte après {step.MaxIterations} itérations " +
-                $"(tick {controller.State.Clock.CurrentTick}, or {controller.State.Gold.Value}).");
+                $"(tick {controller.State.Clock.CurrentTick}, zone {controller.State.Run.Zone}).");
             step.Advance(controller);
         }
 
@@ -60,17 +61,18 @@ public static class ScenarioRunner
 }
 
 /// <summary>
-/// Scénarios du contenu d'exemple. À réécrire avec le vrai jeu : une étape par jalon de progression
-/// (premier bâtiment, première ressource avancée, premier prestige…), pour que chaque fixture couvre
-/// un morceau de modèle de plus que la précédente.
+/// Scénarios du jeu, une étape par jalon de progression : chaque fixture couvre un morceau de modèle
+/// de plus que la précédente (premiers combats, avance automatique, défaite et recul, niveau maximum).
 /// </summary>
-public static class SampleScenarios
+public static class GameScenarios
 {
     private static void PlayOneSecond(GameController c) => c.SimulateTicks(GameClock.TicksPerSecond);
 
-    private static void BuyOrWait(GameController c)
+    /// <summary>Joue une minute puis relance l'avance automatique, comme un joueur qui repasse de temps en temps.</summary>
+    private static void PlayAMinuteThenPush(GameController c)
     {
-        if (!c.TryBuyProducer()) PlayOneSecond(c);
+        c.SimulateTicks(60 * GameClock.TicksPerSecond);
+        c.SetAutoAdvance(true);
     }
 
     public static readonly Scenario Main = new("Main", Seed: 1234,
@@ -83,15 +85,21 @@ public static class SampleScenarios
         },
         new ScenarioStep
         {
-            SaveName = "Main_ThreeProducers",
-            Advance = BuyOrWait,
-            Condition = c => c.State.Entities.Count >= 3,
+            SaveName = "Main_Zone5",
+            Advance = PlayOneSecond,
+            Condition = c => c.State.Run.HighestZone >= 5,
         },
         new ScenarioStep
         {
-            SaveName = "Main_Gold1000",
-            Advance = BuyOrWait,
-            Condition = c => c.State.Gold >= 1000,
+            SaveName = "Main_FirstDefeat",
+            Advance = PlayOneSecond,
+            Condition = c => !c.State.Run.AutoAdvance,
+        },
+        new ScenarioStep
+        {
+            SaveName = "Main_MaxLevel",
+            Advance = PlayAMinuteThenPush,
+            Condition = c => c.State.Heroes[0].Level >= GameContent.MaxLevel,
         },
     ]);
 

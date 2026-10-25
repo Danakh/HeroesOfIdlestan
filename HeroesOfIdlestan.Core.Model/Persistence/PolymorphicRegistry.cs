@@ -9,7 +9,7 @@ namespace HeroesOfIdlestan.Core.Model.Persistence;
 /// oublié ici rend illisible toute sauvegarde qui le contient, d'où le test d'invariant qui vérifie
 /// que chaque valeur de <typeparamref name="TKey"/> est enregistrée.
 ///
-/// <para>Le discriminant est écrit par nom (<c>"$kind": "Producer"</c>) : renommer une valeur exige
+/// <para>Le discriminant est écrit par nom (<c>"$kind": "Hero"</c>) : renommer une valeur exige
 /// une <see cref="ISaveMigration"/>.</para>
 /// </summary>
 public sealed class PolymorphicRegistry<TKey, TBase>

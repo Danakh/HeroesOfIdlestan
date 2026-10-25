@@ -1,9 +1,9 @@
+using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Controller.Content;
 using HeroesOfIdlestan.Core.Controller.Meta;
 using HeroesOfIdlestan.Core.Controller.Modifiers;
 using HeroesOfIdlestan.Core.Controller.Simulation;
 using HeroesOfIdlestan.Core.Model.Entities;
-using HeroesOfIdlestan.Core.Model.Meta;
 using HeroesOfIdlestan.Core.Model.Persistence;
 using HeroesOfIdlestan.Core.Model.State;
 
@@ -20,7 +20,7 @@ public sealed class GameController
     public GameState State { get; private set; } = new();
     public SimulationPipeline Pipeline { get; private set; } = new();
     public ModifierAggregator Modifiers { get; private set; } = new();
-    public AchievementSystem Achievements { get; private set; } = new(SampleContent.Achievements);
+    public AchievementSystem Achievements { get; private set; } = new(GameContent.Achievements);
 
     /// <summary>Levé après chaque <see cref="Initialize"/> (nouvelle partie, chargement).</summary>
     public event Action? StateReplaced;
@@ -33,15 +33,18 @@ public sealed class GameController
 
     // ── Cycle de vie ─────────────────────────────────────────────────────
 
+    /// <summary>Nouvelle partie : un guerrier seul, en zone 1, déjà au combat (GDD §3.1).</summary>
     public void NewGame(int seed)
     {
         var state = new GameState
         {
             WorldPrng = new GamePrng(seed),
             Prng = new GamePrng(seed ^ 0x5EED),
-            Gold = 10,
         };
-        state.Entities.Add(new ProducerEntity { X = 0, Y = 0 });
+        var warrior = new HeroEntity { Class = HeroClass.Warrior, Line = 1 };
+        warrior.Health = GameContent.HeroStats(warrior.Class, warrior.Level).MaxHealth;
+        state.Heroes.Add(warrior);
+        CombatSystem.StartFight(state, state.Clock.CurrentTick);
         Initialize(state);
     }
 
@@ -67,9 +70,9 @@ public sealed class GameController
     {
         State = state;
         Modifiers = new ModifierAggregator();
-        Achievements = new AchievementSystem(SampleContent.Achievements);
+        Achievements = new AchievementSystem(GameContent.Achievements);
         Pipeline = new SimulationPipeline()
-            .Add(new ProductionSystem())
+            .Add(new CombatSystem())
             .Add(Achievements);
         if (state.Clock.WasPausedAtSave) state.Clock.Pause();
         StateReplaced?.Invoke();
@@ -111,27 +114,8 @@ public sealed class GameController
             CurrentTick = State.Clock.CurrentTick,
         });
 
-    // ── Commandes (contenu d'exemple) ────────────────────────────────────
+    // ── Commandes ────────────────────────────────────────────────────────
 
-    public long NextProducerCost => SampleContent.ProducerCost(State.Entities.Count);
-
-    public bool TryBuyProducer()
-    {
-        long cost = NextProducerCost;
-        if (State.Gold < cost) return false;
-        State.Gold = State.Gold - cost;
-
-        // Position tirée du PRNG de gameplay : jamais de System.Random.
-        int count = State.Entities.Count;
-        double angle = State.Prng.NextDouble() * Math.PI * 2;
-        float radius = 80 + 40 * (float)Math.Sqrt(count);
-        State.Entities.Add(new ProducerEntity
-        {
-            X = (float)(Math.Cos(angle) * radius),
-            Y = (float)(Math.Sin(angle) * radius),
-            LastProductionTick = State.Clock.CurrentTick,
-        });
-        State.Events.Add(new GameEvent(State.Clock.CurrentTick, "producer_bought"));
-        return true;
-    }
+    /// <summary>Active ou coupe l'avance automatique (GDD §2). Coupée, l'équipe rejoue sa zone en boucle.</summary>
+    public void SetAutoAdvance(bool enabled) => State.Run.AutoAdvance = enabled;
 }
