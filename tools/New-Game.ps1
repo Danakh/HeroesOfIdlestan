@@ -3,7 +3,7 @@
     Crée un nouveau jeu à partir du squelette HeroesOfIdlestan.
 
 .DESCRIPTION
-    Copie le dépôt (sans bin/, obj/, .vs/, .git/) dans un nouveau dossier en remplaçant
+    Copie le dépôt (sans bin/, obj/, .vs/, .git/, ni le cache .godot/) dans un nouveau dossier en remplaçant
     « HeroesOfIdlestan » par le nom du jeu dans les noms de fichiers, de dossiers et dans le contenu
     texte, et « heroesofidlestan » par sa version minuscule (identifiant Android, préfixe localStorage).
     Les fixtures de sauvegarde sont régénérées (la clé de brouillage change avec le nom), puis la
@@ -28,9 +28,9 @@ $target = Join-Path $Destination $Name
 if (Test-Path $target) { throw "Le dossier $target existe déjà." }
 
 $lower = $Name.ToLowerInvariant()
-$excluded = @('bin', 'obj', '.vs', '.git', 'TestResults')
+$excluded = @('bin', 'obj', '.vs', '.git', 'TestResults', '.godot')
 $textExtensions = @('.cs', '.csproj', '.slnx', '.props', '.json', '.md', '.yml', '.yaml', '.js', '.html',
-                    '.xml', '.py', '.ps1', '.bat', '.txt', '.gitignore')
+                    '.xml', '.py', '.ps1', '.bat', '.txt', '.gitignore', '.godot')
 
 function Rename-Text([string] $text) {
     return $text.Replace('HeroesOfIdlestan', $Name).Replace('heroesofidlestan', $lower)

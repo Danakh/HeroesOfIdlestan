@@ -1,0 +1,19 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <!--
+    Head Godot (bureau, rendu 3D) : le projet Godot lui-même, à côté de project.godot. Seul Main.cs
+    est un script Godot ; tout le reste est construit en code par Core.UI.Godot et Core.Render.Godot.
+    Voir design/08-godot.md.
+  -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.App.Godot</RootNamespace>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <!--
+      Explicite : sans cette ligne, l'éditeur Godot en ajoute une en net8.0 à l'ouverture, qui ne peut
+      pas référencer les couches du Core (net10.0, Directory.Build.props).
+    -->
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.UI.Godot\HeroesOfIdlestan.Core.UI.Godot.csproj" />
+  </ItemGroup>
+</Project>

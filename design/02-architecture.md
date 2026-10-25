@@ -25,6 +25,10 @@ se testent sans fenêtre ni GPU.
 
 `HeroesOfIdlestan.Test.Tests` référence Model, Controller et Render.
 
+Une seconde pile, en 3D sous Godot, double Render, UI et le head : `Core.Render.Godot`,
+`Core.UI.Godot` et `App.Godot`, qui ne s'appuient que sur Model et Controller (voir
+[08 — Version Godot](08-godot.md)). Les deux piles ne se référencent jamais l'une l'autre.
+
 **Model ou Controller ?** Le Model décrit l'état et sait le persister ; il ne le fait jamais avancer.
 Tout ce qui modifie l'état selon les règles du jeu (systèmes du pipeline, commandes, agrégats
 runtime reconstruits au chargement, lecture d'une animation) va dans le Controller. Un type du Model
@@ -37,8 +41,9 @@ Le nom d'un projet dit son rôle ; le préfixe est le nom du jeu.
 
 | Rôle | Nom | Projets |
 |---|---|---|
-| Lance le jeu (head, point d'entrée) | `<Jeu>.App.<Plateforme>` | `HeroesOfIdlestan.App.Desktop`, `.App.Browser`, `.App.Android` |
+| Lance le jeu (head, point d'entrée) | `<Jeu>.App.<Plateforme>` | `HeroesOfIdlestan.App.Desktop`, `.App.Browser`, `.App.Android`, `.App.Godot` |
 | Cœur du jeu, une couche par projet | `<Jeu>.Core.<Couche>` | `HeroesOfIdlestan.Core.Model`, `.Core.Controller`, `.Core.Render`, `.Core.UI` |
+| Variante d'une couche pour un autre moteur | `<Jeu>.Core.<Couche>.<Moteur>` | `HeroesOfIdlestan.Core.Render.Godot`, `.Core.UI.Godot` |
 | Teste | `<Jeu>.Test.<Nom>` | `HeroesOfIdlestan.Test.Tests` |
 | Outil de développement (ne lance pas le jeu) | `<Jeu>.Tool.<Nom>` | `HeroesOfIdlestan.Tool.Animation` |
 
@@ -47,7 +52,9 @@ Le nom d'un projet dit son rôle ; le préfixe est le nom du jeu.
   `HeroesOfIdlestan.Core.Model.State`).
 - Une nouvelle plateforme est un `App.*`, un nouveau projet de tests un `Test.*` (par exemple
   `HeroesOfIdlestan.Test.Benchmarks`), un nouvel outil un `Tool.*`. Le Core garde ses quatre
-  couches : du code qui ne rentre dans aucune signale d'abord une question d'architecture.
+  couches : du code qui ne rentre dans aucune signale d'abord une question d'architecture. Seules
+  Render et UI ont une variante par moteur (`.Godot`), qui remplace la couche d'origine sans en
+  dépendre.
 - `tools/New-Game.ps1` remplace `HeroesOfIdlestan` par le nom du jeu : la convention se transmet
   telle quelle aux jeux créés depuis ce dépôt.
 
@@ -117,6 +124,7 @@ vrai changement.
 | Tout type d'entité est enregistré | `InvariantTests.EveryEntityKind_IsRegistered_WithMatchingType` |
 | L'ordre de simulation est déclaré | `InvariantTests.SimulationPipeline_HasTheDeclaredOrder` |
 | fr.json et en.json ont les mêmes clés | `InvariantTests.LocalizationFiles_HaveTheSameKeys` |
+| Les piles Skia et Godot ne se référencent pas | `InvariantTests.GodotAndSkiaStacks_DoNotReferenceEachOther` |
 | Tout son a son WAV | `SoundBankTests.EverySoundId_HasAReadableWav` |
 | Les sauvegardes se relisent | voir 03 |
 

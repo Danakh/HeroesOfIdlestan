@@ -3,8 +3,11 @@
   <Project Path="HeroesOfIdlestan.Core.Controller/HeroesOfIdlestan.Core.Controller.csproj" />
   <Project Path="HeroesOfIdlestan.Core.Render/HeroesOfIdlestan.Core.Render.csproj" />
   <Project Path="HeroesOfIdlestan.Core.UI/HeroesOfIdlestan.Core.UI.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.Render.Godot/HeroesOfIdlestan.Core.Render.Godot.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.UI.Godot/HeroesOfIdlestan.Core.UI.Godot.csproj" />
   <Project Path="HeroesOfIdlestan.App.Desktop/HeroesOfIdlestan.App.Desktop.csproj" />
   <Project Path="HeroesOfIdlestan.App.Browser/HeroesOfIdlestan.App.Browser.csproj" />
+  <Project Path="HeroesOfIdlestan.App.Godot/HeroesOfIdlestan.App.Godot.csproj" />
   <Project Path="HeroesOfIdlestan.Tool.Animation/HeroesOfIdlestan.Tool.Animation.csproj" />
   <Project Path="HeroesOfIdlestan.Test.Tests/HeroesOfIdlestan.Test.Tests.csproj" />
 </Solution>

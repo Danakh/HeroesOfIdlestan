@@ -1,0 +1,18 @@
+; Projet Godot du head HeroesOfIdlestan.App.Godot. Voir design/08-godot.md.
+
+config_version=5
+
+[application]
+
+config/name="HeroesOfIdlestan"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[dotnet]
+
+project/assembly_name="HeroesOfIdlestan.App.Godot"

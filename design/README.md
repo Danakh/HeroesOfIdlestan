@@ -19,16 +19,18 @@ Il est extrait de l'architecture de SettlersOfIdlestan.
 | [05 — Plateformes](05-plateformes.md) | Les heads Desktop, Browser et Android, et ce que chacun fournit |
 | [06 — Déploiement web](06-deploiement-web.md) | Publier la version web sur GitHub Pages |
 | [07 — Animation](07-animation.md) | Squelettes, habillages SVG, format des animations, outil de test |
+| [08 — Version Godot](08-godot.md) | La pile de rendu 3D sous Godot, à côté de Skia + Avalonia |
 | [Game design](Gamedesign.md) | Les règles du jeu : formation, combat, classes, progression |
 
 ## Commandes
 
 ```bash
-dotnet build HeroesOfIdlestan.slnx                          # Core.*, App.Desktop, App.Browser, Tool.Animation, Test.Tests
+dotnet build HeroesOfIdlestan.slnx                          # Core.*, App.Desktop, App.Browser, App.Godot, Tool.Animation, Test.Tests
 dotnet run --project HeroesOfIdlestan.App.Desktop
 dotnet run --project HeroesOfIdlestan.App.Browser           # sert la page et ouvre le navigateur
 dotnet publish HeroesOfIdlestan.App.Android -c Release      # APK (hors .slnx, workload android requis)
 dotnet run --project HeroesOfIdlestan.Tool.Animation        # banc d'essai des animations
+godot --path HeroesOfIdlestan.App.Godot                     # version Godot 3D (Godot 4.7 .NET, voir 08)
 dotnet test HeroesOfIdlestan.Test.Tests
 python assets/sounds/generate_sounds.py                     # régénère les WAV
 ```
@@ -49,9 +51,12 @@ HeroesOfIdlestan.Core.Model/        état persisté, entités, sauvegarde, local
 HeroesOfIdlestan.Core.Controller/   GameController, simulation, systèmes, modificateurs, succès, stores, lecture des animations
 HeroesOfIdlestan.Core.Render/       rendu Skia, caméra, input, sons, GameRuntime
 HeroesOfIdlestan.Core.UI/           overlay Avalonia, GameRuntimeHost, boucle de frame
+HeroesOfIdlestan.Core.Render.Godot/ rendu 3D Godot, caméra, sons, GameRuntime (voir 08)
+HeroesOfIdlestan.Core.UI.Godot/     HUD Godot, GameRuntimeHost, boucle de frame
 HeroesOfIdlestan.App.Desktop/       head bureau (+ NativeAudioService, partagé avec Android)
 HeroesOfIdlestan.App.Browser/       head WebAssembly (+ wwwroot/)
 HeroesOfIdlestan.App.Android/       head Android (hors .slnx)
+HeroesOfIdlestan.App.Godot/         head Godot 3D : project.godot, Main.cs, assets/characters/
 HeroesOfIdlestan.Tool.Animation/    banc d'essai des animations (Avalonia, bureau)
 HeroesOfIdlestan.Test.Tests/        tests xUnit + Saves/ (fixtures)
 assets/sounds/                      générateur des bruitages

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Overlay Godot : hôte sérialisé du runtime, boucle de frame, HUD et ViewModels. Remplace Core.UI (Avalonia). -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Core.UI.Godot</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="GodotSharp" Version="4.7.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Render.Godot\HeroesOfIdlestan.Core.Render.Godot.csproj" />
+  </ItemGroup>
+</Project>

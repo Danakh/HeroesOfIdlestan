@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Xml.Linq;
 using System.Text.Json.Serialization;
 using HeroesOfIdlestan.Core.Controller;
 using HeroesOfIdlestan.Core.Model.Entities;
@@ -63,5 +64,34 @@ public class InvariantTests
         var fr = Localizer.Load(Language.French).Keys.Order().ToList();
         var en = Localizer.Load(Language.English).Keys.Order().ToList();
         Assert.Equal(fr, en);
+    }
+
+    /// <summary>
+    /// Deux rendus coexistent : Skia + Avalonia (Core.Render, Core.UI) et Godot (Core.Render.Godot,
+    /// Core.UI.Godot, App.Godot). Chacun ne s'appuie que sur Model et Controller, jamais sur l'autre :
+    /// l'un doit pouvoir être retiré sans toucher au second.
+    /// </summary>
+    [Fact]
+    public void GodotAndSkiaStacks_DoNotReferenceEachOther()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !File.Exists(Path.Combine(root.FullName, "HeroesOfIdlestan.slnx")))
+            root = root.Parent;
+        Assert.NotNull(root);
+
+        string[] godot = ["HeroesOfIdlestan.Core.Render.Godot", "HeroesOfIdlestan.Core.UI.Godot", "HeroesOfIdlestan.App.Godot"];
+        string[] skia = ["HeroesOfIdlestan.Core.Render", "HeroesOfIdlestan.Core.UI"];
+
+        var offenders = new List<string>();
+        foreach (var project in Directory.GetFiles(root.FullName, "*.csproj", SearchOption.AllDirectories))
+        {
+            var name = Path.GetFileNameWithoutExtension(project);
+            var forbidden = godot.Contains(name) ? skia : godot;
+            var references = XDocument.Load(project).Descendants("ProjectReference")
+                .Select(r => Path.GetFileNameWithoutExtension((string?)r.Attribute("Include") ?? ""));
+            offenders.AddRange(references.Where(forbidden.Contains).Select(r => $"{name} → {r}"));
+        }
+
+        Assert.True(offenders.Count == 0, "Références entre les rendus Skia et Godot : " + string.Join(", ", offenders));
     }
 }
