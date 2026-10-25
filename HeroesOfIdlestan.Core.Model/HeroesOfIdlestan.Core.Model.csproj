@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Couche Model : état persisté, entités, sauvegarde, localisation, données d'animation. Aucune logique de jeu, aucune dépendance. -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Core.Model</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Localization\*.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HeroesOfIdlestan.Test.Tests" />
+  </ItemGroup>
+</Project>

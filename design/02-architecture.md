@@ -1,22 +1,55 @@
 # 02 — Architecture
 
-Chaque couche ne dépend que de celle du dessous, et le Core ne dépend de rien : c'est ce qui le rend
-testable sans fenêtre ni GPU.
+Chaque couche ne dépend que de celle du dessous, et le Model ne dépend de rien : Model et Controller
+se testent sans fenêtre ni GPU.
 
 ```
- Desktop / Browser / Android   heads : point d'entrée + services de plateforme
+ HeroesOfIdlestan.App.Desktop / .App.Browser / .App.Android
+                                    heads : point d'entrée + services de plateforme
+ HeroesOfIdlestan.Tool.Animation    banc d'essai des animations (même niveau qu'un head)
             │
             ▼
-      HeroesOfIdlestan.UI          overlay Avalonia, GameRuntimeHost, boucle de frame
+ HeroesOfIdlestan.Core.UI           overlay Avalonia, GameRuntimeHost, boucle de frame
             │
             ▼
-    HeroesOfIdlestan.Render        rendu Skia, caméra, input, sons, GameRuntime
+ HeroesOfIdlestan.Core.Render       rendu Skia, caméra, input, sons, GameRuntime, dessin des habillages
             │
             ▼
-     HeroesOfIdlestan.Core         état, simulation, sauvegarde — aucune dépendance
+ HeroesOfIdlestan.Core.Controller   GameController, simulation, systèmes, modificateurs, succès, stores,
+                                    lecture des animations
+            │
+            ▼
+ HeroesOfIdlestan.Core.Model        état persisté, entités, sauvegarde, localisation, données
+                                    d'animation et pose — aucune dépendance
 ```
 
-`HeroesOfIdlestan.Tests` référence Core et Render.
+`HeroesOfIdlestan.Test.Tests` référence Model, Controller et Render.
+
+**Model ou Controller ?** Le Model décrit l'état et sait le persister ; il ne le fait jamais avancer.
+Tout ce qui modifie l'état selon les règles du jeu (systèmes du pipeline, commandes, agrégats
+runtime reconstruits au chargement, lecture d'une animation) va dans le Controller. Un type du Model
+qui aurait besoin d'un type du Controller signale un découpage à revoir : la référence inverse
+n'existe pas.
+
+## Nommage des projets
+
+Le nom d'un projet dit son rôle ; le préfixe est le nom du jeu.
+
+| Rôle | Nom | Projets |
+|---|---|---|
+| Lance le jeu (head, point d'entrée) | `<Jeu>.App.<Plateforme>` | `HeroesOfIdlestan.App.Desktop`, `.App.Browser`, `.App.Android` |
+| Cœur du jeu, une couche par projet | `<Jeu>.Core.<Couche>` | `HeroesOfIdlestan.Core.Model`, `.Core.Controller`, `.Core.Render`, `.Core.UI` |
+| Teste | `<Jeu>.Test.<Nom>` | `HeroesOfIdlestan.Test.Tests` |
+| Outil de développement (ne lance pas le jeu) | `<Jeu>.Tool.<Nom>` | `HeroesOfIdlestan.Tool.Animation` |
+
+- Le dossier, le `.csproj` et l'assembly portent le nom du projet ; l'espace de noms racine aussi
+  (`RootNamespace`), et un sous-dossier ajoute un segment (`HeroesOfIdlestan.Core.Model/State/` →
+  `HeroesOfIdlestan.Core.Model.State`).
+- Une nouvelle plateforme est un `App.*`, un nouveau projet de tests un `Test.*` (par exemple
+  `HeroesOfIdlestan.Test.Benchmarks`), un nouvel outil un `Tool.*`. Le Core garde ses quatre
+  couches : du code qui ne rentre dans aucune signale d'abord une question d'architecture.
+- `tools/New-Game.ps1` remplace `HeroesOfIdlestan` par le nom du jeu : la convention se transmet
+  telle quelle aux jeux créés depuis ce dépôt.
 
 ## Store d'état
 

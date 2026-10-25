@@ -1,9 +1,10 @@
 <Solution>
-  <Project Path="HeroesOfIdlestan.Core/HeroesOfIdlestan.Core.csproj" />
-  <Project Path="HeroesOfIdlestan.Render/HeroesOfIdlestan.Render.csproj" />
-  <Project Path="HeroesOfIdlestan.UI/HeroesOfIdlestan.UI.csproj" />
-  <Project Path="HeroesOfIdlestan.Desktop/HeroesOfIdlestan.Desktop.csproj" />
-  <Project Path="HeroesOfIdlestan.AnimationTool/HeroesOfIdlestan.AnimationTool.csproj" />
-  <Project Path="HeroesOfIdlestan.Browser/HeroesOfIdlestan.Browser.csproj" />
-  <Project Path="HeroesOfIdlestan.Tests/HeroesOfIdlestan.Tests.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.Model/HeroesOfIdlestan.Core.Model.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.Controller/HeroesOfIdlestan.Core.Controller.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.Render/HeroesOfIdlestan.Core.Render.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.UI/HeroesOfIdlestan.Core.UI.csproj" />
+  <Project Path="HeroesOfIdlestan.App.Desktop/HeroesOfIdlestan.App.Desktop.csproj" />
+  <Project Path="HeroesOfIdlestan.App.Browser/HeroesOfIdlestan.App.Browser.csproj" />
+  <Project Path="HeroesOfIdlestan.Tool.Animation/HeroesOfIdlestan.Tool.Animation.csproj" />
+  <Project Path="HeroesOfIdlestan.Test.Tests/HeroesOfIdlestan.Test.Tests.csproj" />
 </Solution>

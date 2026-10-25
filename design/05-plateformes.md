@@ -5,13 +5,13 @@ un `GameRuntimeHost`, et afficher `GameView`. Tout le reste est partagé.
 
 | | Desktop | Browser | Android |
 |---|---|---|---|
-| Projet | `HeroesOfIdlestan.Desktop` | `HeroesOfIdlestan.Browser` | `HeroesOfIdlestan.Android` |
+| Projet | `HeroesOfIdlestan.App.Desktop` | `HeroesOfIdlestan.App.Browser` | `HeroesOfIdlestan.App.Android` |
 | Dans `.slnx` | oui | oui | **non** (workload android requis) |
 | Stockage | Fichiers `%AppData%/HeroesOfIdlestan` | localStorage (`heroesofidlestan_*`) | Stockage interne de l'app |
 | Son | `NativeAudioService` | `BrowserAudioService` | `NativeAudioService` (fichier lié) |
 | Arrière-plan | Fenêtre sans focus | Onglet caché | Activité en pause |
 | Temps perdu | — | Onglet bridé : durée cachée versée à la banque | Processus gelé : sentinelle d'1 s |
-| Lancement | `dotnet run --project HeroesOfIdlestan.Desktop` | `dotnet run --project HeroesOfIdlestan.Browser` | `dotnet build -t:Run -f net10.0-android` sur un appareil |
+| Lancement | `dotnet run --project HeroesOfIdlestan.App.Desktop` | `dotnet run --project HeroesOfIdlestan.App.Browser` | `dotnet build -t:Run -f net10.0-android` sur un appareil |
 | Livraison | `dotnet publish -c Release -r win-x64` | GitHub Pages (voir 06) | APK (workflow `build-android.yml`) |
 
 ## Desktop
@@ -48,8 +48,8 @@ Workload utile pour publier : `dotnet workload install wasm-tools`.
 Build local :
 
 ```powershell
-dotnet publish HeroesOfIdlestan.Android -c Release
-adb install -r HeroesOfIdlestan.Android\bin\Release\net10.0-android\publish\com.example.heroesofidlestan-Signed.apk
+dotnet publish HeroesOfIdlestan.App.Android -c Release
+adb install -r HeroesOfIdlestan.App.Android\bin\Release\net10.0-android\publish\com.example.heroesofidlestan-Signed.apk
 ```
 
 ### Signature
@@ -68,6 +68,6 @@ fichier en Base64 : `[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.
 
 ## Ajouter une plateforme
 
-Un nouveau head référence `HeroesOfIdlestan.UI`, implémente `IFileSystemService` (et `IAudioService` s'il
+Un nouveau head référence `HeroesOfIdlestan.Core.UI`, implémente `IFileSystemService` (et `IAudioService` s'il
 a du son), construit `GameRuntime`, et signale l'arrière-plan (`SetInBackground`) et le temps perdu
 (`CreditStalledTime`) à l'hôte.

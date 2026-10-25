@@ -58,7 +58,7 @@ Get-ChildItem -Path $source -Recurse -Force -File | Where-Object {
 }
 
 # Les fixtures sont brouillées avec une clé qui contient le nom du jeu : on les reconstruit.
-Remove-Item -Recurse -Force (Join-Path $target "$Name.Tests\saves\current") -ErrorAction SilentlyContinue
+Remove-Item -Recurse -Force (Join-Path $target "$Name.Test.Tests\saves\current") -ErrorAction SilentlyContinue
 
 Push-Location $target
 try {
@@ -66,12 +66,12 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Le build a échoué.' }
 
     $env:BLANK_MANUAL_TESTS = '1'
-    dotnet test "$Name.Tests" --no-build --filter "FullyQualifiedName~Rebuild_Current_Saves"
+    dotnet test "$Name.Test.Tests" --no-build --filter "FullyQualifiedName~Rebuild_Current_Saves"
     Remove-Item Env:BLANK_MANUAL_TESTS
     if ($LASTEXITCODE -ne 0) { throw 'La régénération des fixtures a échoué.' }
 
     if (-not $SkipTests) {
-        dotnet test "$Name.Tests" --no-build
+        dotnet test "$Name.Test.Tests" --no-build
         if ($LASTEXITCODE -ne 0) { throw 'Les tests ont échoué.' }
     }
 }

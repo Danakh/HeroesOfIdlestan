@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Head Android (APK). Hors de HeroesOfIdlestan.slnx : il exige le workload `android`
+    (dotnet workload install android) et se build seul — voir design/05-plateformes.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>HeroesOfIdlestan.App.Android</RootNamespace>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+
+    <!-- À changer avant toute publication : l'identifiant ne peut plus changer ensuite. -->
+    <ApplicationId>com.example.heroesofidlestan</ApplicationId>
+    <ApplicationTitle>HeroesOfIdlestan</ApplicationTitle>
+
+    <!--
+      versionName suit GameVersion.Current, lu dans la source plutôt que recopié : une seconde
+      copie se désynchroniserait à la première version. Ne pas reformater la constante.
+    -->
+    <_GameVersionSource>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\HeroesOfIdlestan.Core.Model\State\GameVersion.cs'))</_GameVersionSource>
+    <ApplicationDisplayVersion>$([System.Text.RegularExpressions.Regex]::Match($(_GameVersionSource), 'Current\s*=\s*"([0-9.]+)"').Groups[1].Value)</ApplicationDisplayVersion>
+    <!--
+      versionCode : entier strictement croissant, exigé pour installer une mise à jour par-dessus la
+      précédente. Le workflow GitHub passe le numéro de run (-p:ApplicationVersion=...).
+    -->
+    <ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
+
+    <!--
+      GameState passe par la réflexion de System.Text.Json (pas de source generator). Le SDK
+      Android active le trimming en Release, ce qui la désactiverait et retirerait des types :
+      une sauvegarde se rechargerait incomplète, sans erreur.
+    -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <!-- L'AOT Android exige le trimming : on reste en JIT. -->
+    <RunAOTCompilation>false</RunAOTCompilation>
+
+    <!-- APK installable à la main ; passer -p:AndroidPackageFormat=aab pour le Play Store. -->
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- Signature Release : sans keystore, le SDK signe avec la clé de debug de la machine. -->
+  <PropertyGroup Condition="'$(AndroidSigningKeyStore)' != ''">
+    <AndroidKeyStore>true</AndroidKeyStore>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Android" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <!-- Bruitages : même moteur que le bureau (miniaudio), qui livre ses binaires Android. -->
+    <PackageReference Include="SoundFlow" Version="1.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Sortie audio du bureau, liée plutôt que recopiée : une copie dériverait au premier correctif. -->
+    <Compile Include="..\HeroesOfIdlestan.App.Desktop\Audio\NativeAudioService.cs" Link="Audio\NativeAudioService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.UI\HeroesOfIdlestan.Core.UI.csproj" />
+  </ItemGroup>
+</Project>

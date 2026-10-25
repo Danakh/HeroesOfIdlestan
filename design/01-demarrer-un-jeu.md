@@ -35,11 +35,11 @@ aux joueurs ou empêche les mises à jour.
 
 | Quoi | Où | Pourquoi |
 |---|---|---|
-| Clé de brouillage des sauvegardes | `Core/Persistence/SaveCodec.cs` (`Key`) | La changer rend toutes les sauvegardes illisibles |
-| Préfixe du stockage web | `Browser/Services/BrowserServices.cs` (`Prefix`) | Les parties web y sont rangées |
-| Identifiant Android | `Android/*.csproj` (`ApplicationId`) | Android refuse une mise à jour d'un autre identifiant |
-| Nom de la sauvegarde | `Render/Runtime/GameRuntime.cs` (`AutosaveFileName`) | Les fichiers existants ne seraient plus trouvés |
-| Dossier de données bureau | `Desktop/DesktopFileSystemService.cs` | Idem |
+| Clé de brouillage des sauvegardes | `Core.Model/Persistence/SaveCodec.cs` (`Key`) | La changer rend toutes les sauvegardes illisibles |
+| Préfixe du stockage web | `App.Browser/Services/BrowserServices.cs` (`Prefix`) | Les parties web y sont rangées |
+| Identifiant Android | `App.Android/*.csproj` (`ApplicationId`) | Android refuse une mise à jour d'un autre identifiant |
+| Nom de la sauvegarde | `Core.Render/Runtime/GameRuntime.cs` (`AutosaveFileName`) | Les fichiers existants ne seraient plus trouvés |
+| Dossier de données bureau | `App.Desktop/DesktopFileSystemService.cs` | Idem |
 
 Changer la clé de brouillage impose de régénérer les fixtures `current` (voir 03).
 
@@ -49,14 +49,14 @@ Le contenu d'exemple est volontairement petit et repérable. À retirer ou rempl
 
 | Fichier | Contenu d'exemple |
 |---|---|
-| `Core/Model/Entity.cs` | `ProducerEntity`, valeur `EntityKind.Producer` |
-| `Core/Model/SampleContent.cs` | `ProductionSystem`, coûts, succès d'exemple |
-| `Core/State/GameState.cs` | `Gold`, section « Contenu d'exemple » |
-| `Core/Controller/GameController.cs` | `NewGame` (état initial), `TryBuyProducer` |
-| `Render/Renderers/SampleRenderers.cs` | `EntityRenderer` (`GridRenderer` est réutilisable) |
-| `Render/Runtime/Snapshots.cs` + `UI/ViewModels/HudViewModel.cs` + `UI/Views/HudView.cs` | Le HUD |
-| `Render/Audio/GameAudioService.cs` | `OnGameEvent` : la table événement → son |
-| `Tests/TestUtilities/Scenarios.cs` | `SampleScenarios` |
+| `Core.Model/Entities/Entity.cs` | `ProducerEntity`, valeur `EntityKind.Producer` |
+| `Core.Controller/Content/SampleContent.cs` | `ProductionSystem`, coûts, succès d'exemple |
+| `Core.Model/State/GameState.cs` | `Gold`, section « Contenu d'exemple » |
+| `Core.Controller/GameController.cs` | `NewGame` (état initial), `TryBuyProducer` |
+| `Core.Render/Renderers/SampleRenderers.cs` | `EntityRenderer` (`GridRenderer` est réutilisable) |
+| `Core.Render/Runtime/Snapshots.cs` + `Core.UI/ViewModels/HudViewModel.cs` + `Core.UI/Views/HudView.cs` | Le HUD |
+| `Core.Render/Audio/GameAudioService.cs` | `OnGameEvent` : la table événement → son |
+| `Test.Tests/TestUtilities/Scenarios.cs` | `SampleScenarios` |
 
 Ordre conseillé, pour garder les tests verts à chaque étape :
 

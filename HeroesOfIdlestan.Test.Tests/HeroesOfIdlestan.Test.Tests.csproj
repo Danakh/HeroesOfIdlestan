@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <!-- Les tests du runtime créent des objets Skia : la CI GitHub tourne sous Linux. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.4" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Model\HeroesOfIdlestan.Core.Model.csproj" />
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Controller\HeroesOfIdlestan.Core.Controller.csproj" />
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Render\HeroesOfIdlestan.Core.Render.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Les fixtures sont lues depuis les sources (voir SaveFixtures.SavesRoot), jamais copiées en sortie. -->
+    <None Remove="saves\**" />
+  </ItemGroup>
+</Project>

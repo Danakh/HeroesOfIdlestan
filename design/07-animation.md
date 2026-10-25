@@ -1,11 +1,13 @@
 # 07 — Animation squelettale
 
-Personnages animés par un squelette d'os, habillés de morceaux SVG. Le moteur vit dans le jeu
-(`Core/Animation`, `Render/Animation`) ; `HeroesOfIdlestan.AnimationTool` sert de banc d'essai.
+Personnages animés par un squelette d'os, habillés de morceaux SVG. Le moteur vit dans le jeu :
+`Core.Model/Animation` pour les données et la pose, `Core.Controller/Animation` pour la lecture
+(`AnimationPlayer`, `AnimationSampler`), `Core.Render/Animation` pour le dessin.
+`HeroesOfIdlestan.Tool.Animation` sert de banc d'essai.
 
 ```bash
-dotnet run --project HeroesOfIdlestan.AnimationTool              # lit assets/animation/
-dotnet run --project HeroesOfIdlestan.AnimationTool -- <dossier> # ou un autre dossier
+dotnet run --project HeroesOfIdlestan.Tool.Animation              # lit assets/animation/
+dotnet run --project HeroesOfIdlestan.Tool.Animation -- <dossier> # ou un autre dossier
 python assets/animation/generate_warrior_placeholder.py          # régénère les SVG provisoires
 ```
 

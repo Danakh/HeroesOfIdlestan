@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Overlay Avalonia : hôte sérialisé du runtime, boucle de frame, vues et ViewModels. -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Core.UI</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Skia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Render\HeroesOfIdlestan.Core.Render.csproj" />
+  </ItemGroup>
+</Project>

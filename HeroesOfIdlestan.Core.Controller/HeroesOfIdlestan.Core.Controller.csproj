@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Couche Controller : GameController, pipeline de simulation, systèmes, modificateurs, succès, stores, lecture des animations. Aucune dépendance de rendu ni d'UI. -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Core.Controller</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HeroesOfIdlestan.Test.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Model\HeroesOfIdlestan.Core.Model.csproj" />
+  </ItemGroup>
+</Project>

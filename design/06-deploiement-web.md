@@ -43,17 +43,17 @@ publication WebAssembly est longue.
 
 | Étape | Rôle |
 |---|---|
-| Test | `dotnet test HeroesOfIdlestan.Tests` : pas de mise en ligne si une sauvegarde ne se relit plus |
+| Test | `dotnet test HeroesOfIdlestan.Test.Tests` : pas de mise en ligne si une sauvegarde ne se relit plus |
 | Install WASM workload | `wasm-tools`, pour la publication Release |
-| Publish | `dotnet publish HeroesOfIdlestan.Browser -c Release` ; le bundle est dans `bin/Release/net10.0-browser/browser-wasm/AppBundle` |
+| Publish | `dotnet publish HeroesOfIdlestan.App.Browser -c Release` ; le bundle est dans `bin/Release/net10.0-browser/browser-wasm/AppBundle` |
 | Add .nojekyll | Sans lui, Jekyll ignore `_framework/` (préfixe « _ ») et la page reste noire |
 | Upload / Deploy | Artefact Pages puis mise en ligne |
 
 ## Tester localement avant de publier
 
 ```powershell
-dotnet publish HeroesOfIdlestan.Browser -c Release
-cd HeroesOfIdlestan.Browser\bin\Release\net10.0-browser\browser-wasm\AppBundle
+dotnet publish HeroesOfIdlestan.App.Browser -c Release
+cd HeroesOfIdlestan.App.Browser\bin\Release\net10.0-browser\browser-wasm\AppBundle
 python -m http.server 8080
 # ouvrir http://localhost:8080
 ```

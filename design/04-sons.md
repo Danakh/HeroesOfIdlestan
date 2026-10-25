@@ -12,8 +12,8 @@ jouer et quand ; chaque head fournit une sortie `IAudioService` qui sait comment
 
 ## Ajouter un son
 
-1. Une valeur dans `Render/Audio/SoundId.cs`, par exemple `BuildingCompleted`.
-2. Son fichier `Render/Resources/sounds/building_completed.wav` (le nom est la valeur en
+1. Une valeur dans `Core.Render/Audio/SoundId.cs`, par exemple `BuildingCompleted`.
+2. Son fichier `Core.Render/Resources/sounds/building_completed.wav` (le nom est la valeur en
    snake_case). Deux façons :
    - le synthétiser : une fonction `building_completed()` dans `assets/sounds/generate_sounds.py`,
      ajoutée à `SOUNDS`, puis `python assets/sounds/generate_sounds.py` ;

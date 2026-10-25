@@ -53,18 +53,18 @@ garde la valeur du constructeur.
 
 ### Scénarios et fixtures `current`
 
-Un scénario (`Tests/TestUtilities/Scenarios.cs`) est une suite d'étapes nommées. L'étape N charge
+Un scénario (`Test.Tests/TestUtilities/Scenarios.cs`) est une suite d'étapes nommées. L'étape N charge
 la fixture de l'étape N−1, joue jusqu'à sa condition, vérifie le round-trip et produit la fixture N.
 Chaque fixture est aussi un point de reprise pour déboguer : la copier dans le dossier de données
 du bureau sous le nom `autosave.sav` pour l'ouvrir en jeu.
 
-Les fixtures sont lues et écrites dans `HeroesOfIdlestan.Tests/saves/` (les sources, pas `bin/`), pour
+Les fixtures sont lues et écrites dans `HeroesOfIdlestan.Test.Tests/saves/` (les sources, pas `bin/`), pour
 être versionnées avec le code.
 
 **Régénérer `current`** — action volontaire, jamais déclenchée par « lancer tous les tests » :
 
 ```powershell
-$env:BLANK_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Tests --filter "FullyQualifiedName~Rebuild_Current_Saves"
+$env:BLANK_MANUAL_TESTS=1; dotnet test HeroesOfIdlestan.Test.Tests --filter "FullyQualifiedName~Rebuild_Current_Saves"
 ```
 
 À faire quand `GameVersion.Current` change, quand un scénario change, ou quand une règle de jeu
@@ -77,7 +77,7 @@ est déterministe : deux régénérations sans changement de code donnent des fi
 À chaque sortie de version :
 
 ```powershell
-Copy-Item -Recurse HeroesOfIdlestan.Tests\saves\current HeroesOfIdlestan.Tests\saves\release-0.1
+Copy-Item -Recurse HeroesOfIdlestan.Test.Tests\saves\current HeroesOfIdlestan.Test.Tests\saves\release-0.1
 ```
 
 Ces dossiers sont **figés à vie** : `SaveFixtures.Write` lève sur tout dossier `release-*`.

@@ -2,7 +2,7 @@
 Generateur des bruitages du squelette.
 
 Les sons sont synthetises ici puis ecrits en WAV mono 16 bits 44100 Hz dans
-HeroesOfIdlestan.Render/Resources/sounds/, d'ou ils sont embarques (voir HeroesOfIdlestan.Render.csproj).
+HeroesOfIdlestan.Core.Render/Resources/sounds/, d'ou ils sont embarques (voir HeroesOfIdlestan.Core.Render.csproj).
 Chaque fichier porte le nom de la valeur de SoundId qui le joue, en snake_case : c'est ce qui les
 relie (voir SoundBank.FileName).
 
@@ -26,7 +26,7 @@ import wave
 
 SAMPLE_RATE = 44100
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "..", "..", "HeroesOfIdlestan.Render", "Resources", "sounds")
+                       "..", "..", "HeroesOfIdlestan.Core.Render", "Resources", "sounds")
 
 
 def tone(freq, duration, volume=0.5, attack=0.005):

@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 env:
-  PROJECT: HeroesOfIdlestan.Android/HeroesOfIdlestan.Android.csproj
-  PUBLISH_DIR: HeroesOfIdlestan.Android/bin/Release/net10.0-android/publish
+  PROJECT: HeroesOfIdlestan.App.Android/HeroesOfIdlestan.App.Android.csproj
+  PUBLISH_DIR: HeroesOfIdlestan.App.Android/bin/Release/net10.0-android/publish
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
           java-version: '21'
 
       - name: Test
-        run: dotnet test HeroesOfIdlestan.Tests -c Release
+        run: dotnet test HeroesOfIdlestan.Test.Tests -c Release
 
       - name: Install Android workload
         run: dotnet workload install android
@@ -78,7 +78,7 @@ jobs:
       - name: Rename APK
         id: apk
         run: |
-          VERSION=$(grep -oP 'Current\s*=\s*"\K[0-9.]+' HeroesOfIdlestan.Core/State/GameVersion.cs)
+          VERSION=$(grep -oP 'Current\s*=\s*"\K[0-9.]+' HeroesOfIdlestan.Core.Model/State/GameVersion.cs)
           NAME="HeroesOfIdlestan-$VERSION-${{ github.run_number }}.apk"
           mv "$PUBLISH_DIR"/*-Signed.apk "$NAME"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
