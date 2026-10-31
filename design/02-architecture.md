@@ -132,6 +132,21 @@ décide de ce qui recouvre quoi et de qui reçoit un clic. Les vues sont constru
 XAML) et liées à leur ViewModel par `Binding`. `ViewModelBase.SetProperty` ne notifie qu'en cas de
 vrai changement.
 
+## Menu principal
+
+Au lancement, `GameSession` est au menu (`InMenu`) : aucune partie n'est chargée, `Tick` ne fait
+rien et rien n'est sauvegardé. `MenuViewModel` (commun) propose :
+
+| Choix | Commande de la session | Effet |
+|---|---|---|
+| Continuer (si une sauvegarde existe) | `ContinueGame` | Charge `autosave.sav` et crédite l'absence ; sans sauvegarde lisible, nouvelle partie |
+| Nouvelle partie | `StartNewGame` | Un guerrier seul en zone 1 ; remplace la sauvegarde |
+| Partie de debug | `StartDebugGame` | 15 guerriers contre 15 gobelins à chaque zone (`RunState.Debug`), tous en ligne 1 ; jamais sauvegardée |
+
+Le bouton Menu du HUD (`ReturnToMenu`) sauvegarde, vide le champ de bataille et rouvre le menu. Le
+HUD est masqué tant que le menu est affiché. Côté Avalonia, `MenuView` est construit en code ; côté
+Godot, il lie `ui/menu.tscn` (voir 08).
+
 ## Règles transformées en tests
 
 | Règle | Test |

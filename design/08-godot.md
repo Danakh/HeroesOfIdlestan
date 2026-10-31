@@ -16,7 +16,7 @@ le rendu, les vues et le head changent.
  HeroesOfIdlestan.Core.Render.Godot  GameRuntime (session + scène), scène 3D du combat, caméra, sortie audio
             │
             ▼
- HeroesOfIdlestan.Core.Presentation  GameSession, sons, snapshots, GameHost, HudViewModel (communs)
+ HeroesOfIdlestan.Core.Presentation  GameSession, sons, snapshots, GameHost, HudViewModel, MenuViewModel (communs)
             │
             ▼
  HeroesOfIdlestan.Core.Controller → HeroesOfIdlestan.Core.Model
@@ -51,7 +51,10 @@ l'éditeur), le modèle 3D est introuvable et les combattants s'affichent en cap
 | `GodotFileSystemService` | App.Godot | Sauvegardes dans `user://` (`%AppData%/Godot/app_userdata/HeroesOfIdlestan`), séparées du head Avalonia |
 | `ui/hud.tscn` | App.Godot | Mise en page du HUD, éditée dans Godot ; sans script |
 | `GameView` | UI.Godot | Scène 3D au fond, HUD dans un `CanvasLayer` ; tick + mise à jour de la scène à chaque frame, HUD sondé toutes les 100 ms |
+| `ui/menu.tscn` | App.Godot | Mise en page du menu principal ; sans script |
+| `SceneView` | UI.Godot | Base des vues liées à une scène : instanciation, nœuds par nom unique, recopie des propriétés notifiées |
 | `HudView` | UI.Godot | Instancie `ui/hud.tscn` et la relie au `HudViewModel` commun : chaque propriété notifiée est recopiée dans son contrôle |
+| `MenuView` | UI.Godot | Instancie `ui/menu.tscn` et la relie au `MenuViewModel` commun |
 | `GameRuntimeHost` | UI.Godot | Dérive du `GameHost` commun (verrou, `Read` / `Invoke`) ; ajoute `Render(delta)` et l'input Godot |
 | `GameRuntime` | Render.Godot | La `GameSession` commune + la scène ; `Render(delta)` met la scène à jour |
 | `BattleScene` | Render.Godot | Décor, lumière, caméra, une `FighterView` par combattant ; lit l'état, ne le modifie jamais |
@@ -82,9 +85,17 @@ La mise en page de l'UI se fait dans l'éditeur ; la logique reste dans les View
 | Nœud de `ui/hud.tscn` | Type | Lié à |
 |---|---|---|
 | `%Gold`, `%Zone`, `%Hero`, `%Bank` | `Label` | `GoldLabel`, `ZoneLabel`, `HeroLabel`, `BankLabel` |
-| `%AutoAdvance`, `%Pause`, `%Save` | `Button` | libellé + `ToggleAutoAdvance`, `TogglePause`, `Save` |
+| `%AutoAdvance`, `%Pause`, `%Save`, `%Menu` | `Button` | libellé + `ToggleAutoAdvance`, `TogglePause`, `Save`, `ReturnToMenu` |
 | `%Speed1`, `%Speed3`, `%Speed10` | `Button` | `SetSpeed(1 / 3 / 10)` |
 | `%Sound` | `Button` | `SoundLabel`, visible si `SoundAvailable`, `ToggleSound` |
+
+| Nœud de `ui/menu.tscn` | Type | Lié à |
+|---|---|---|
+| `%Title` | `Label` | `Title` |
+| `%Continue` | `Button` | `ContinueLabel`, visible si `CanContinue`, `Continue` |
+| `%NewGame`, `%DebugGame` | `Button` | `NewGameLabel`, `DebugGameLabel` + `NewGame`, `DebugGame` |
+
+La racine de `menu.tscn` est montrée ou cachée selon `Visible` ; le HUD, selon `HudVisible`.
 
 Un nouvel élément du HUD : la propriété dans `HudViewModel` (et le snapshot si besoin), le nœud dans
 `hud.tscn`, une ligne de liaison dans `HudView` — et sa contrepartie dans le `HudView` Avalonia.

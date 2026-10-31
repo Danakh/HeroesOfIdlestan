@@ -54,11 +54,15 @@ public sealed class HudView : Border
         sound.Bind(IsVisibleProperty, new Binding(nameof(HudViewModel.SoundAvailable)));
         sound.Click += (_, _) => viewModel.ToggleSound();
 
+        var menu = new Button();
+        menu.Bind(ContentControl.ContentProperty, new Binding(nameof(HudViewModel.MenuLabel)));
+        menu.Click += (_, _) => viewModel.ReturnToMenu();
+
         Child = new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 16,
-            Children = { gold, zone, hero, autoAdvance, pause, speeds, bank, save, sound },
+            Children = { gold, zone, hero, autoAdvance, pause, speeds, bank, save, sound, menu },
         };
     }
 }

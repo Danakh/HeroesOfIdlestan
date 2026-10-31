@@ -33,13 +33,16 @@ public sealed class CameraRig
 
     public Camera3D Camera { get; }
 
-    /// <summary>Cadre tout le champ de bataille, vu de face et légèrement d'en haut.</summary>
-    public void Reset()
+    /// <summary>
+    /// Cadre tout le champ de bataille, vu de face et légèrement d'en haut. <paramref name="distanceScale"/>
+    /// recule la caméra pour un champ de bataille plus profond que celui par défaut.
+    /// </summary>
+    public void Reset(float distanceScale = 1f)
     {
         _target = DefaultTarget;
         _yaw = 0;
         _pitch = DefaultPitch;
-        _distance = DefaultDistance;
+        _distance = Mathf.Clamp(DefaultDistance * distanceScale, MinDistance, MaxDistance);
         _orbiting = _panning = false;
         Apply();
     }

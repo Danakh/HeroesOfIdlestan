@@ -52,7 +52,7 @@ public sealed class CombatSystem : ISimulationSystem
     public static void StartFight(GameState state, long tick)
     {
         state.Monsters.Clear();
-        state.Monsters.AddRange(GameContent.MonsterGroup(state.Run.Zone));
+        state.Monsters.AddRange(state.Run.Debug ? GameContent.DebugMonsterGroup() : GameContent.MonsterGroup(state.Run.Zone));
         foreach (var monster in state.Monsters)
         {
             var stats = Stats(state, monster);

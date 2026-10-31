@@ -62,12 +62,16 @@ public static class GameContent
             (long)Math.Round(30 * Math.Pow(1.18, zone - 1)),
             (long)Math.Round(6 * Math.Pow(1.15, zone - 1)),
             GameClock.TicksPerSecond * 6 / 5),
+        MonsterSpecies.Goblin => new FighterStats(
+            (long)Math.Round(50 * Math.Pow(1.18, zone - 1)),
+            (long)Math.Round(8 * Math.Pow(1.15, zone - 1)),
+            GameClock.TicksPerSecond),
         _ => throw new ArgumentOutOfRangeException(nameof(species), species, null),
     };
 
     public static CombatAction? MonsterAction(MonsterSpecies species, int line) => species switch
     {
-        MonsterSpecies.Rat => line == 1 ? CombatAction.Melee : null,
+        MonsterSpecies.Rat or MonsterSpecies.Goblin => line == 1 ? CombatAction.Melee : null,
         _ => null,
     };
 
@@ -75,6 +79,21 @@ public static class GameContent
     public static IEnumerable<MonsterEntity> MonsterGroup(int zone)
     {
         yield return new MonsterEntity { Species = MonsterSpecies.Rat, Line = 1 };
+    }
+
+    // ── Partie de debug ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Taille des deux camps d'une partie de debug. Tous en ligne 1 : seule la ligne 1 frappe au
+    /// corps à corps, et l'avancée des lignes arrière (GDD §3.2) n'existe pas encore.
+    /// </summary>
+    public const int DebugFighterCount = 15;
+
+    /// <summary>Le groupe de chaque zone d'une partie de debug : <see cref="DebugFighterCount"/> gobelins.</summary>
+    public static IEnumerable<MonsterEntity> DebugMonsterGroup()
+    {
+        for (int i = 0; i < DebugFighterCount; i++)
+            yield return new MonsterEntity { Species = MonsterSpecies.Goblin, Line = 1 };
     }
 
     // ── Récompenses ──────────────────────────────────────────────────────

@@ -18,7 +18,9 @@ public sealed class BattleScene : IDisposable
     /// </summary>
     public const string FighterModelPath = "res://assets/characters/bake3d-robot-animated.glb";
 
+    private readonly GameController _game;
     private readonly CameraRig _camera = new();
+    private readonly MeshInstance3D _ground;
     private readonly PackedScene? _model;
     private readonly Dictionary<Entity, FighterView> _views = new(ReferenceEqualityComparer.Instance);
     private readonly List<FighterView> _corpses = [];
@@ -29,6 +31,7 @@ public sealed class BattleScene : IDisposable
 
     public BattleScene(GameController game)
     {
+        _game = game;
         Root = new Node3D { Name = "Battle" };
         _model = ResourceLoader.Exists(FighterModelPath) ? GD.Load<PackedScene>(FighterModelPath) : null;
         if (_model == null)
@@ -36,7 +39,8 @@ public sealed class BattleScene : IDisposable
 
         Root.AddChild(BuildEnvironment());
         Root.AddChild(BuildLight());
-        Root.AddChild(BuildGround());
+        _ground = BuildGround();
+        Root.AddChild(_ground);
         Root.AddChild(_camera.Camera);
 
         game.StateReplaced += Clear;
@@ -82,7 +86,7 @@ public sealed class BattleScene : IDisposable
             _seen.Add(fighter);
             if (!_views.TryGetValue(fighter, out var view))
             {
-                view = new FighterView(_model, isHero, playIntro: isHero && _freshState);
+                view = new FighterView(_model, fighter, playIntro: isHero && _freshState);
                 Root.AddChild(view.Root);
                 _views[fighter] = view;
             }
@@ -97,8 +101,20 @@ public sealed class BattleScene : IDisposable
         foreach (var view in _corpses) view.Free();
         _views.Clear();
         _corpses.Clear();
-        _camera.Reset();
+        FitBattlefield(_game.State);
         _freshState = true;
+    }
+
+    /// <summary>
+    /// Agrandit le sol pour la ligne la plus longue des deux camps (15 combattants de front en partie
+    /// de debug) et recule la caméra d'autant.
+    /// </summary>
+    private void FitBattlefield(GameState state)
+    {
+        var size = BattleLayout.GroundSizeFor(state);
+        ((PlaneMesh)_ground.Mesh).Size = size;
+        ((BoxMesh)_ground.GetNode<MeshInstance3D>("Midline").Mesh).Size = new Vector3(0.06f, 0.01f, size.Y - 1f);
+        _camera.Reset(distanceScale: size.Y / BattleLayout.GroundSize.Y);
     }
 
     public void Dispose()
@@ -131,7 +147,7 @@ public sealed class BattleScene : IDisposable
         ShadowEnabled = true,
     };
 
-    private static Node3D BuildGround()
+    private static MeshInstance3D BuildGround()
     {
         var ground = new MeshInstance3D
         {

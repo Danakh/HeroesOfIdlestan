@@ -16,5 +16,8 @@
   "ui_auto_advance_off": "Avance auto : coupée",
   "event_fight_won": "Zone {0} gagnée",
   "event_fight_lost": "Défaite en zone {0}",
-  "event_hero_level_up": "Niveau {0} atteint"
+  "event_hero_level_up": "Niveau {0} atteint",
+  "ui_continue": "Continuer",
+  "ui_debug_game": "Partie de debug",
+  "ui_menu": "Menu"
 }

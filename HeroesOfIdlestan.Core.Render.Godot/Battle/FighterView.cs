@@ -40,9 +40,11 @@ internal sealed class FighterView
 
     private static readonly Color HeroTint = new(0.25f, 0.5f, 0.85f, 0.12f);
     private static readonly Color MonsterTint = new(0.8f, 0.25f, 0.15f, 0.3f);
+    private static readonly Color GoblinTint = new(0.3f, 0.7f, 0.2f, 0.35f);
     private static readonly Color DeadTint = new(0.2f, 0.2f, 0.22f, 0.6f);
 
     private readonly bool _isHero;
+    private readonly Color _aliveTint;
     private readonly Node3D _pivot;
     private readonly AnimationPlayer? _animation;
     private readonly List<GeometryInstance3D> _meshes = [];
@@ -54,9 +56,16 @@ internal sealed class FighterView
     private float _fall;
     private float _corpseTime;
 
-    public FighterView(PackedScene? model, bool isHero, bool playIntro)
+    public FighterView(PackedScene? model, Entity fighter, bool playIntro)
     {
+        bool isHero = fighter is HeroEntity;
         _isHero = isHero;
+        _aliveTint = fighter switch
+        {
+            HeroEntity => HeroTint,
+            MonsterEntity { Species: MonsterSpecies.Goblin } => GoblinTint,
+            _ => MonsterTint,
+        };
         float scale = isHero ? 1f : MonsterScale;
         _height = ModelHeight * scale;
 
@@ -70,7 +79,7 @@ internal sealed class FighterView
         body.Scale = Vector3.One * scale;
         _pivot.AddChild(body);
         Collect(body);
-        SetTint(isHero ? HeroTint : MonsterTint);
+        SetTint(_aliveTint);
 
         _animation = FindAnimationPlayer(body);
         if (_animation != null)
@@ -109,7 +118,7 @@ internal sealed class FighterView
         if (fighter.IsAlive != _wasAlive)
         {
             _wasAlive = fighter.IsAlive;
-            SetTint(fighter.IsAlive ? (_isHero ? HeroTint : MonsterTint) : DeadTint);
+            SetTint(fighter.IsAlive ? _aliveTint : DeadTint);
         }
         UpdateFall(fighter.IsAlive, speed, delta);
         UpdateAnimation(fighter.IsAlive ? ChooseAnimation(state.Run) : null, speed);

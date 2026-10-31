@@ -1,5 +1,6 @@
 using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Model.Entities;
+using HeroesOfIdlestan.Core.Model.State;
 using HeroesOfIdlestan.Core.Render.Rendering;
 using SkiaSharp;
 
@@ -19,7 +20,22 @@ public static class BattleLayout
     public const float HalfSlot = 40f;
     public const float FighterRadius = 26f;
 
+    /// <summary>Champ de bataille minimal : trois lignes par camp, quelques combattants par ligne.</summary>
     public static readonly SKRect Bounds = SKRect.Create(-260, -160, 520, 320);
+
+    /// <summary>
+    /// Le champ de bataille, agrandi en hauteur pour tenir la ligne la plus longue des deux camps
+    /// (15 combattants de front en partie de debug).
+    /// </summary>
+    public static SKRect BoundsFor(GameState state)
+    {
+        int widest = Math.Max(WidestLine(state.Heroes), WidestLine(state.Monsters));
+        float halfHeight = Math.Max(-Bounds.Top, (widest - 1) * HalfSlot + FighterRadius + 40f);
+        return SKRect.Create(Bounds.Left, -halfHeight, Bounds.Width, 2 * halfHeight);
+    }
+
+    private static int WidestLine(IEnumerable<Entity> side) =>
+        side.GroupBy(f => f.Line).Select(g => g.Count()).DefaultIfEmpty(0).Max();
 
     /// <summary>Position d'un combattant ; null s'il ne fait pas (ou plus) partie de la formation.</summary>
     public static SKPoint? PositionOf(Entity fighter, IReadOnlyList<Entity> side, bool isHero)
@@ -45,7 +61,7 @@ public sealed class GroundRenderer : IGameRenderer
 
     public void Render(SKCanvas canvas, FrameContext context)
     {
-        var bounds = BattleLayout.Bounds;
+        var bounds = BattleLayout.BoundsFor(context.State);
         canvas.Save();
         context.Camera.ApplyTo(canvas);
         canvas.DrawRoundRect(bounds, 24, 24, _ground);
@@ -62,7 +78,8 @@ public sealed class GroundRenderer : IGameRenderer
 
 /// <summary>
 /// Les combattants : un rond marqué de l'initiale de sa classe ou de son espèce (G : guerrier,
-/// R : rat), sa barre de vie, et une courte fente vers l'adversaire à chaque action.
+/// R : rat, G sur fond vert : gobelin), sa barre de vie, et une courte fente vers l'adversaire à
+/// chaque action.
 /// </summary>
 public sealed class FighterRenderer : IGameRenderer
 {
@@ -72,6 +89,7 @@ public sealed class FighterRenderer : IGameRenderer
 
     private readonly SKPaint _heroFill = new() { Color = new SKColor(0x3F, 0x7C, 0xD6), IsAntialias = true };
     private readonly SKPaint _monsterFill = new() { Color = new SKColor(0xA8, 0x55, 0x3A), IsAntialias = true };
+    private readonly SKPaint _goblinFill = new() { Color = new SKColor(0x4E, 0x8A, 0x3A), IsAntialias = true };
     private readonly SKPaint _deadFill = new() { Color = new SKColor(0x55, 0x5A, 0x60, 0x90), IsAntialias = true };
     private readonly SKPaint _outline = new() { Color = new SKColor(0x10, 0x14, 0x1A), IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 3 };
     private readonly SKPaint _letter = new()
@@ -112,7 +130,13 @@ public sealed class FighterRenderer : IGameRenderer
                 position.X += (isHero ? 1 : -1) * LungeDistance * (1 - sinceAction / LungeTicks);
         }
 
-        var fill = !fighter.IsAlive ? _deadFill : isHero ? _heroFill : _monsterFill;
+        var fill = fighter switch
+        {
+            { IsAlive: false } => _deadFill,
+            HeroEntity => _heroFill,
+            MonsterEntity { Species: MonsterSpecies.Goblin } => _goblinFill,
+            _ => _monsterFill,
+        };
         canvas.DrawCircle(position, r, fill);
         canvas.DrawCircle(position, r, _outline);
         DrawLetter(canvas, Initial(fighter), position, r * 0.5f);
@@ -129,6 +153,7 @@ public sealed class FighterRenderer : IGameRenderer
     {
         HeroEntity { Class: HeroClass.Warrior } => 'G',
         MonsterEntity { Species: MonsterSpecies.Rat } => 'R',
+        MonsterEntity { Species: MonsterSpecies.Goblin } => 'G',
         _ => '?',
     };
 
@@ -173,6 +198,7 @@ public sealed class FighterRenderer : IGameRenderer
     {
         _heroFill.Dispose();
         _monsterFill.Dispose();
+        _goblinFill.Dispose();
         _deadFill.Dispose();
         _outline.Dispose();
         _letter.Dispose();

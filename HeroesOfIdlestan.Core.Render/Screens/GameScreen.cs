@@ -48,7 +48,7 @@ public sealed class GameScreen : IScreen
         _camera.SetViewport(size);
         if (!_framed && size.Width > 0)
         {
-            _camera.Fit(BattleLayout.Bounds);
+            _camera.Fit(BattleLayout.BoundsFor(_game.State));
             _framed = true;
         }
 

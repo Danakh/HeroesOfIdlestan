@@ -18,6 +18,7 @@ public interface IGameHost
     T Read<T>(Func<GameSession, T> read);
     void Invoke(Action<GameSession> command);
     HudSnapshot GetHudSnapshot();
+    MenuSnapshot GetMenuSnapshot();
     string Localize(string key, params object[] args);
 }
 
@@ -71,6 +72,8 @@ public abstract class GameHost<TRuntime>(TRuntime runtime) : IGameHost, IDisposa
     // ── Lecture pour l'overlay ───────────────────────────────────────────
 
     public HudSnapshot GetHudSnapshot() => Read(r => r.Session.GetHudSnapshot()) ?? HudSnapshot.Empty;
+
+    public MenuSnapshot GetMenuSnapshot() => Read(r => r.Session.GetMenuSnapshot()) ?? MenuSnapshot.Empty;
 
     public string Localize(string key, params object[] args) =>
         Read(r => args.Length == 0 ? r.Session.Localizer.Get(key) : r.Session.Localizer.GetFormatted(key, args)) ?? key;

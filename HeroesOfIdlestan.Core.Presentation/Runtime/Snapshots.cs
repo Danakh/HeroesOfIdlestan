@@ -22,3 +22,9 @@ public sealed record HudSnapshot(
 {
     public static readonly HudSnapshot Empty = new(false, 1, 0, 0, 1, 1, true, 0, 0, 0, false, false);
 }
+
+/// <summary>Le menu principal : affiché ou non, et s'il y a une partie à continuer.</summary>
+public sealed record MenuSnapshot(bool Visible, bool CanContinue)
+{
+    public static readonly MenuSnapshot Empty = new(false, false);
+}

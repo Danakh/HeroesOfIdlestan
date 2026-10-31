@@ -80,3 +80,8 @@ text = "Sauvegarder"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Son"
+
+[node name="Menu" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Menu"

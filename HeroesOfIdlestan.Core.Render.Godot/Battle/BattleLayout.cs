@@ -1,6 +1,7 @@
 using Godot;
 using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Model.Entities;
+using HeroesOfIdlestan.Core.Model.State;
 
 namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 
@@ -19,6 +20,17 @@ public static class BattleLayout
 
     /// <summary>Taille du sol : de quoi tenir trois lignes par camp.</summary>
     public static readonly Vector2 GroundSize = new(16f, 9f);
+
+    /// <summary>Le sol, allongé en profondeur pour tenir la ligne la plus longue des deux camps.</summary>
+    public static Vector2 GroundSizeFor(GameState state)
+    {
+        int widest = Math.Max(WidestLine(state.Heroes), WidestLine(state.Monsters));
+        float depth = Math.Max(GroundSize.Y, 2 * ((widest - 1) * HalfSlot + 1.5f));
+        return new Vector2(GroundSize.X, depth);
+    }
+
+    private static int WidestLine(IEnumerable<Entity> side) =>
+        side.GroupBy(f => f.Line).Select(g => g.Count()).DefaultIfEmpty(0).Max();
 
     /// <summary>Position d'un combattant ; null s'il ne fait pas (ou plus) partie de la formation.</summary>
     public static Vector3? PositionOf(Entity fighter, IReadOnlyList<Entity> side, bool isHero)

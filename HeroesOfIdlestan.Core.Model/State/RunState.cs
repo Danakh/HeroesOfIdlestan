@@ -40,4 +40,10 @@ public sealed class RunState
     public long RestEndTick { get; set; }
 
     public FightOutcome LastOutcome { get; set; }
+
+    /// <summary>
+    /// Partie de debug : chaque zone oppose le même grand groupe de gobelins
+    /// (<c>GameContent.DebugMonsterGroup</c>). Jamais sauvegardée par la session.
+    /// </summary>
+    public bool Debug { get; set; }
 }

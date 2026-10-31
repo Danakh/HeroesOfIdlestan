@@ -18,6 +18,8 @@ public sealed class GameView : IDisposable
     private readonly GameRuntimeHost _host;
     private readonly HudViewModel _hud;
     private readonly HudView _hudView;
+    private readonly MenuViewModel _menu;
+    private readonly MenuView _menuView;
     private double _sinceHudRefresh = HudRefreshSeconds;
 
     public GameView(GameRuntimeHost host)
@@ -25,12 +27,21 @@ public sealed class GameView : IDisposable
         _host = host;
         _hud = new HudViewModel(host);
         _hudView = new HudView(_hud);
+        _menu = new MenuViewModel(host);
+        _menuView = new MenuView(_menu);
+        _menu.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MenuViewModel.HudVisible)) _hudView.Root.Visible = _menu.HudVisible;
+        };
+        _menu.Refresh(host.GetMenuSnapshot());
+        _hudView.Root.Visible = _menu.HudVisible;
 
         Root = new Node { Name = "GameView" };
         // La scène appartient au runtime : on ne fait que l'accrocher, sur le thread principal.
         Root.AddChild(host.Read(r => r.Scene.Root));
         var overlay = new CanvasLayer { Name = "Overlay" };
         overlay.AddChild(_hudView.Root);
+        overlay.AddChild(_menuView.Root);
         Root.AddChild(overlay);
     }
 
@@ -45,11 +56,16 @@ public sealed class GameView : IDisposable
         _sinceHudRefresh += delta;
         if (_sinceHudRefresh < HudRefreshSeconds) return;
         _sinceHudRefresh = 0;
+        _menu.Refresh(_host.GetMenuSnapshot());
         _hud.Refresh(_host.GetHudSnapshot());
     }
 
     /// <summary>Entrée que le HUD n'a pas prise. Vrai si elle a servi.</summary>
     public bool HandleInput(InputEvent input) => _host.HandleInput(input);
 
-    public void Dispose() => _hudView.Detach();
+    public void Dispose()
+    {
+        _hudView.Detach();
+        _menuView.Detach();
+    }
 }

@@ -56,11 +56,12 @@ un rat, combat → repos → zone suivante. Le jeu se trouve ici :
 | `Core.Controller/Content/GameContent.cs` | Statistiques, actions par ligne, récompenses, XP, succès |
 | `Core.Controller/Combat/Formation.cs` | Positions en demi-cases, distances, ciblage (GDD §3.4, §4.3, §4.4) |
 | `Core.Controller/Combat/CombatSystem.cs` | La boucle courte, simulée par événements |
-| `Core.Controller/GameController.cs` | `NewGame` (état initial), `SetAutoAdvance` |
+| `Core.Controller/GameController.cs` | `NewGame` (état initial), `NewDebugGame` (15 contre 15), `SetAutoAdvance` |
 | `Core.Render/Renderers/BattleRenderers.cs` | Le champ de bataille et les combattants (Skia) |
 | `Core.Render.Godot/Battle/` | Le champ de bataille et les combattants (Godot 3D) |
 | `Core.Presentation/Runtime/Snapshots.cs` + `Core.Presentation/ViewModels/HudViewModel.cs` | Le HUD : données et libellés, communs aux deux piles |
 | `Core.UI/Views/HudView.cs` + `App.Godot/ui/hud.tscn` | Le HUD : vue Avalonia, scène Godot |
+| `Core.Presentation/ViewModels/MenuViewModel.cs` + `Core.UI/Views/MenuView.cs` + `App.Godot/ui/menu.tscn` | Le menu principal (continuer, nouvelle partie, debug) |
 | `Core.Presentation/Audio/GameAudioService.cs` | `OnGameEvent` : la table événement → son |
 | `Test.Tests/TestUtilities/Scenarios.cs` | `GameScenarios` |
 

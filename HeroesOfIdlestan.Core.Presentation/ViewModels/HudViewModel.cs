@@ -17,6 +17,7 @@ public sealed class HudViewModel(IGameHost host) : ViewModelBase
     private string _pauseLabel = "";
     private string _saveLabel = "";
     private string _soundLabel = "";
+    private string _menuLabel = "";
     private bool _soundAvailable;
 
     public string GoldLabel { get => _goldLabel; private set => SetProperty(ref _goldLabel, value); }
@@ -27,6 +28,7 @@ public sealed class HudViewModel(IGameHost host) : ViewModelBase
     public string PauseLabel { get => _pauseLabel; private set => SetProperty(ref _pauseLabel, value); }
     public string SaveLabel { get => _saveLabel; private set => SetProperty(ref _saveLabel, value); }
     public string SoundLabel { get => _soundLabel; private set => SetProperty(ref _soundLabel, value); }
+    public string MenuLabel { get => _menuLabel; private set => SetProperty(ref _menuLabel, value); }
     public bool SoundAvailable { get => _soundAvailable; private set => SetProperty(ref _soundAvailable, value); }
 
     public void Refresh(HudSnapshot snapshot)
@@ -45,6 +47,7 @@ public sealed class HudViewModel(IGameHost host) : ViewModelBase
         PauseLabel = host.Localize(snapshot.IsPaused ? "ui_play" : "ui_pause");
         SaveLabel = host.Localize("ui_save");
         SoundLabel = host.Localize(snapshot.SoundEnabled ? "ui_sound_on" : "ui_sound_off");
+        MenuLabel = host.Localize("ui_menu");
         SoundAvailable = snapshot.SoundAvailable;
     }
 
@@ -53,5 +56,5 @@ public sealed class HudViewModel(IGameHost host) : ViewModelBase
     public void SetSpeed(int speed) => host.Invoke(r => r.SetSpeed(speed));
     public void ToggleSound() => host.Invoke(r => r.ToggleSound());
     public void Save() => host.Invoke(r => r.SaveNow());
-    public void NewGame() => host.Invoke(r => r.StartNewGame());
+    public void ReturnToMenu() => host.Invoke(r => r.ReturnToMenu());
 }

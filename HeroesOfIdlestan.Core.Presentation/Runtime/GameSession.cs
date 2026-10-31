@@ -21,6 +21,11 @@ namespace HeroesOfIdlestan.Core.Presentation.Runtime;
 /// session vaut pour les deux piles, et une sauvegarde passe de l'une à l'autre.</para>
 ///
 /// <para>Chaque head la construit avec ses propres services : stockage, sortie audio, stores.</para>
+///
+/// <para>Au lancement, la session est au menu (<see cref="InMenu"/>) : aucune partie n'est chargée
+/// et rien n'avance tant que le joueur n'a pas choisi de continuer, de commencer une nouvelle partie
+/// ou de lancer une partie de debug. Une partie de debug n'est jamais sauvegardée : elle ne touche
+/// pas à la partie en cours.</para>
 /// </summary>
 public sealed class GameSession : IDisposable
 {
@@ -33,10 +38,17 @@ public sealed class GameSession : IDisposable
     private readonly Func<DateTimeOffset> _now;
     private readonly Stopwatch _autosaveTimer = Stopwatch.StartNew();
     private bool _loading;
+    private bool _hasSavedGame;
 
     public GameController Game { get; } = new();
     public Localizer Localizer { get; } = new();
     public GameAudioService Audio { get; }
+
+    /// <summary>Vrai au lancement et après <see cref="ReturnToMenu"/> : aucune partie ne tourne.</summary>
+    public bool InMenu { get; private set; } = true;
+
+    /// <summary>Une partie sauvegardée existe : le menu propose de la continuer.</summary>
+    public bool HasSavedGame => _hasSavedGame;
 
     /// <param name="files">Stockage du head.</param>
     /// <param name="audio">Sortie audio du head, ou null pour un jeu muet.</param>
@@ -58,13 +70,20 @@ public sealed class GameSession : IDisposable
         Game.StateReplaced += WireState;
         WireState();
 
-        LoadOrCreate();
+        _hasSavedGame = _files.ReadText(AutosaveFileName) != null;
     }
 
     /// <summary>Rebranche ce qui écoute l'état : appelé à chaque nouvelle partie ou chargement.</summary>
     private void WireState() => Game.State.Events.Added += Audio.OnGameEvent;
 
     // ── Partie ───────────────────────────────────────────────────────────
+
+    /// <summary>Reprend la partie sauvegardée (temps d'absence crédité), ou en commence une s'il n'y en a pas.</summary>
+    public void ContinueGame()
+    {
+        InMenu = false;
+        LoadOrCreate();
+    }
 
     private void LoadOrCreate()
     {
@@ -97,16 +116,40 @@ public sealed class GameSession : IDisposable
         StartNewGame();
     }
 
+    /// <summary>Nouvelle partie : remplace la partie sauvegardée.</summary>
     public void StartNewGame()
     {
+        InMenu = false;
         Game.NewGame(Environment.TickCount);
         _store.Connect(Game.Achievements, Game.State);
         SaveNow();
     }
 
+    /// <summary>
+    /// Partie de debug (15 guerriers contre 15 gobelins). Ni sauvegardée ni reliée aux stores : la
+    /// partie en cours reste intacte, et « Continuer » la retrouve.
+    /// </summary>
+    public void StartDebugGame()
+    {
+        InMenu = false;
+        Game.NewDebugGame(Environment.TickCount);
+    }
+
+    /// <summary>Sauvegarde la partie en cours et revient au menu, sur un champ de bataille vide.</summary>
+    public void ReturnToMenu()
+    {
+        if (InMenu) return;
+        SaveNow();
+        InMenu = true;
+        Game.Clear();
+    }
+
+    /// <summary>Sauvegarde la partie en cours ; sans effet au menu et en partie de debug.</summary>
     public void SaveNow()
     {
+        if (InMenu || Game.State.Run.Debug) return;
         _files.WriteText(AutosaveFileName, Game.Save(_now()));
+        _hasSavedGame = true;
         _autosaveTimer.Restart();
     }
 
@@ -114,6 +157,7 @@ public sealed class GameSession : IDisposable
 
     public void Tick()
     {
+        if (InMenu) return;
         Game.Tick(_now());
         if (_autosaveTimer.Elapsed >= AutosaveInterval) SaveNow();
     }
@@ -135,7 +179,7 @@ public sealed class GameSession : IDisposable
     /// </summary>
     public void CreditStalledTime(double seconds)
     {
-        if (seconds <= 0) return;
+        if (seconds <= 0 || InMenu) return;
         Game.State.Clock.OfflineBankTicks += (long)(seconds * GameClock.TicksPerSecond);
     }
 
@@ -154,6 +198,8 @@ public sealed class GameSession : IDisposable
     public void ToggleSound() => Audio.Enabled = !Audio.Enabled;
 
     // ── Lecture ──────────────────────────────────────────────────────────
+
+    public MenuSnapshot GetMenuSnapshot() => new(InMenu, _hasSavedGame);
 
     public HudSnapshot GetHudSnapshot()
     {

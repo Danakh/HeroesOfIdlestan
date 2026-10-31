@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Threading;
 using HeroesOfIdlestan.Core.UI.Controls;
 using HeroesOfIdlestan.Core.Presentation.ViewModels;
@@ -19,22 +20,32 @@ public sealed class GameView : Panel, IDisposable
 
     private readonly GameRuntimeHost _host;
     private readonly HudViewModel _hud;
+    private readonly MenuViewModel _menu;
     private readonly DispatcherTimer _sync;
 
     public GameView(GameRuntimeHost host)
     {
         _host = host;
         _hud = new HudViewModel(host);
+        _menu = new MenuViewModel(host);
+
+        var hudView = new HudView(_hud);
+        hudView.Bind(IsVisibleProperty, new Binding(nameof(MenuViewModel.HudVisible)) { Source = _menu });
 
         Children.Add(new GameRuntimeControl(host));
-        Children.Add(new HudView(_hud));
+        Children.Add(hudView);
+        Children.Add(new MenuView(_menu));
 
         _sync = new DispatcherTimer(SyncInterval, DispatcherPriority.Normal, (_, _) => SyncFromRuntime());
         _sync.Start();
         SyncFromRuntime();
     }
 
-    private void SyncFromRuntime() => _hud.Refresh(_host.GetHudSnapshot());
+    private void SyncFromRuntime()
+    {
+        _menu.Refresh(_host.GetMenuSnapshot());
+        _hud.Refresh(_host.GetHudSnapshot());
+    }
 
     public void Dispose() => _sync.Stop();
 }

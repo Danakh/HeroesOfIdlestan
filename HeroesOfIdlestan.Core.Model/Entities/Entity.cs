@@ -26,6 +26,7 @@ public enum HeroClass
 public enum MonsterSpecies
 {
     Rat,
+    Goblin,
 }
 
 /// <summary>

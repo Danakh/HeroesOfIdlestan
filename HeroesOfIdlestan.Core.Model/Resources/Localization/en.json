@@ -16,5 +16,8 @@
   "ui_auto_advance_off": "Auto advance: off",
   "event_fight_won": "Zone {0} cleared",
   "event_fight_lost": "Defeated in zone {0}",
-  "event_hero_level_up": "Reached level {0}"
+  "event_hero_level_up": "Reached level {0}",
+  "ui_continue": "Continue",
+  "ui_debug_game": "Debug game",
+  "ui_menu": "Menu"
 }
