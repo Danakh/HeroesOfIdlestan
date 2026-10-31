@@ -1,4 +1,4 @@
-namespace HeroesOfIdlestan.Core.Render.Runtime;
+namespace HeroesOfIdlestan.Core.Presentation.Runtime;
 
 /// <summary>
 /// Instantanés destinés à l'overlay. Construits en une seule prise du verrou de l'hôte : lire dix

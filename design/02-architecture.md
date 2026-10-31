@@ -4,15 +4,21 @@ Chaque couche ne dépend que de celle du dessous, et le Model ne dépend de rien
 se testent sans fenêtre ni GPU.
 
 ```
- HeroesOfIdlestan.App.Desktop / .App.Browser / .App.Android
-                                    heads : point d'entrée + services de plateforme
- HeroesOfIdlestan.Tool.Animation    banc d'essai des animations (même niveau qu'un head)
-            │
-            ▼
- HeroesOfIdlestan.Core.UI           overlay Avalonia, GameRuntimeHost, boucle de frame
-            │
-            ▼
- HeroesOfIdlestan.Core.Render       rendu Skia, caméra, input, sons, GameRuntime, dessin des habillages
+ HeroesOfIdlestan.App.Desktop / .App.Browser / .App.Android        HeroesOfIdlestan.App.Godot
+                                    heads : point d'entrée            head Godot, scènes d'UI (res://ui/)
+                                    + services de plateforme
+ HeroesOfIdlestan.Tool.Animation    banc d'essai des animations
+            │                                                                   │
+            ▼                                                                   ▼
+ HeroesOfIdlestan.Core.UI           overlay Avalonia, boucle       HeroesOfIdlestan.Core.UI.Godot
+            │                                                                   │
+            ▼                                                                   ▼
+ HeroesOfIdlestan.Core.Render       rendu Skia, caméra, input,     HeroesOfIdlestan.Core.Render.Godot
+            │                       dessin des habillages                       │
+            └───────────────────────────────┬───────────────────────────────────┘
+                                            ▼
+ HeroesOfIdlestan.Core.Presentation GameSession (partie, sauvegarde auto, commandes), règles des
+                                    bruitages, snapshots, hôte sérialisé, ViewModels — aucun moteur
             │
             ▼
  HeroesOfIdlestan.Core.Controller   GameController, simulation, systèmes, modificateurs, succès, stores,
@@ -23,11 +29,19 @@ se testent sans fenêtre ni GPU.
                                     d'animation et pose — aucune dépendance
 ```
 
-`HeroesOfIdlestan.Test.Tests` référence Model, Controller et Render.
+`HeroesOfIdlestan.Test.Tests` référence Model, Controller, Presentation et Render.
 
-Une seconde pile, en 3D sous Godot, double Render, UI et le head : `Core.Render.Godot`,
-`Core.UI.Godot` et `App.Godot`, qui ne s'appuient que sur Model et Controller (voir
-[08 — Version Godot](08-godot.md)). Les deux piles ne se référencent jamais l'une l'autre.
+**Deux piles d'affichage, maintenues en parallèle** : Skia + Avalonia (`Core.Render`, `Core.UI`,
+heads Desktop, Browser, Android) et Godot 3D (`Core.Render.Godot`, `Core.UI.Godot`, `App.Godot`,
+voir [08 — Version Godot](08-godot.md)). Elles ne se référencent jamais l'une l'autre et ne
+s'appuient que sur `Core.Presentation`. Une évolution se fait sur les deux dans le même changement.
+
+**Presentation ou pile ?** Ce qui ne dépend pas d'un moteur va dans Presentation, une seule fois :
+la partie et sa sauvegarde, les commandes du joueur, la table événement → son, les snapshots, les
+ViewModels et leurs libellés. Une pile ne garde que ce qui dessine, ce qui lit l'input de son moteur
+et les vues (Avalonia en code, scènes Godot). Une ligne recopiée à l'identique dans les deux piles
+signale du code à remonter dans Presentation. `InvariantTests.PresentationLayer_DependsOnNoEngine`
+y interdit tout paquet Skia, Avalonia ou Godot.
 
 **Model ou Controller ?** Le Model décrit l'état et sait le persister ; il ne le fait jamais avancer.
 Tout ce qui modifie l'état selon les règles du jeu (systèmes du pipeline, commandes, agrégats
@@ -42,7 +56,7 @@ Le nom d'un projet dit son rôle ; le préfixe est le nom du jeu.
 | Rôle | Nom | Projets |
 |---|---|---|
 | Lance le jeu (head, point d'entrée) | `<Jeu>.App.<Plateforme>` | `HeroesOfIdlestan.App.Desktop`, `.App.Browser`, `.App.Android`, `.App.Godot` |
-| Cœur du jeu, une couche par projet | `<Jeu>.Core.<Couche>` | `HeroesOfIdlestan.Core.Model`, `.Core.Controller`, `.Core.Render`, `.Core.UI` |
+| Cœur du jeu, une couche par projet | `<Jeu>.Core.<Couche>` | `HeroesOfIdlestan.Core.Model`, `.Core.Controller`, `.Core.Presentation`, `.Core.Render`, `.Core.UI` |
 | Variante d'une couche pour un autre moteur | `<Jeu>.Core.<Couche>.<Moteur>` | `HeroesOfIdlestan.Core.Render.Godot`, `.Core.UI.Godot` |
 | Teste | `<Jeu>.Test.<Nom>` | `HeroesOfIdlestan.Test.Tests` |
 | Outil de développement (ne lance pas le jeu) | `<Jeu>.Tool.<Nom>` | `HeroesOfIdlestan.Tool.Animation` |
@@ -51,9 +65,9 @@ Le nom d'un projet dit son rôle ; le préfixe est le nom du jeu.
   (`RootNamespace`), et un sous-dossier ajoute un segment (`HeroesOfIdlestan.Core.Model/State/` →
   `HeroesOfIdlestan.Core.Model.State`).
 - Une nouvelle plateforme est un `App.*`, un nouveau projet de tests un `Test.*` (par exemple
-  `HeroesOfIdlestan.Test.Benchmarks`), un nouvel outil un `Tool.*`. Le Core garde ses quatre
+  `HeroesOfIdlestan.Test.Benchmarks`), un nouvel outil un `Tool.*`. Le Core garde ses cinq
   couches : du code qui ne rentre dans aucune signale d'abord une question d'architecture. Seules
-  Render et UI ont une variante par moteur (`.Godot`), qui remplace la couche d'origine sans en
+  Render et UI ont une variante par moteur (`.Godot`), qui double la couche d'origine sans en
   dépendre.
 - `tools/New-Game.ps1` remplace `HeroesOfIdlestan` par le nom du jeu : la convention se transmet
   telle quelle aux jeux créés depuis ce dépôt.
@@ -67,13 +81,15 @@ un hôte qui pose un verrou.
 |---|---|
 | `GameState` | Racine unique : tout ce qui est persisté, rien d'autre |
 | `GameController` | Possède l'état, construit le pipeline et les agrégats runtime, expose les commandes |
-| `GameRuntime` | Côté Render : contrôleur + écran + sons + sauvegarde auto ; construit par chaque head |
-| `GameRuntimeHost.Read` / `Invoke` | Seule porte d'entrée vers le runtime, sous verrou |
+| `GameSession` | Presentation : contrôleur + sons + sauvegarde auto + commandes + snapshots |
+| `GameRuntime` | Une par pile : la session + ce qui dessine (écran Skia, scène Godot) ; construit par chaque head |
+| `GameHost<T>.Read` / `Invoke` | Seule porte d'entrée vers le runtime, sous verrou ; chaque pile en dérive son `GameRuntimeHost` (rendu, input) |
+| `IGameHost` | Ce que voient les ViewModels : la session, sous le même verrou, sans rien savoir de la pile |
 | Snapshots (`record`) | Vue immuable pour l'UI, construite en une seule prise de verrou |
 | Synchro par sondage | L'UI relit les snapshots toutes les 100 ms, découplée des 60 fps |
 
 **Pourquoi un verrou.** Avalonia dessine sur son thread de rendu ; la boucle de jeu et l'input vivent
-sur le thread UI. Le modèle reste mono-thread par conception ; c'est l'accès qui est sérialisé.
+sur le thread UI. Sous Godot tout vit sur le thread principal, mais le contrat reste le même. Le modèle reste mono-thread par conception ; c'est l'accès qui est sérialisé.
 Un ViewModel qui lit le runtime sans passer par `Read` réintroduit la course (« Collection was
 modified » dans un renderer, au mieux).
 

@@ -1,7 +1,8 @@
 # 05 — Plateformes
 
 Un head ne fait que trois choses : construire un `GameRuntime` avec ses services, l'envelopper dans
-un `GameRuntimeHost`, et afficher `GameView`. Tout le reste est partagé.
+un `GameRuntimeHost`, et afficher `GameView`. Tout le reste est partagé. Cette page couvre les heads
+de la pile Skia + Avalonia ; le head Godot est décrit dans [08](08-godot.md).
 
 | | Desktop | Browser | Android |
 |---|---|---|---|
@@ -68,6 +69,6 @@ fichier en Base64 : `[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.
 
 ## Ajouter une plateforme
 
-Un nouveau head référence `HeroesOfIdlestan.Core.UI`, implémente `IFileSystemService` (et `IAudioService` s'il
+Un nouveau head référence `HeroesOfIdlestan.Core.UI` (ou `Core.UI.Godot`), implémente `IFileSystemService` (et `IAudioService` s'il
 a du son), construit `GameRuntime`, et signale l'arrière-plan (`SetInBackground`) et le temps perdu
 (`CreditStalledTime`) à l'hôte.

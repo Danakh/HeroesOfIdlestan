@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
 using HeroesOfIdlestan.Core.UI.Controls;
-using HeroesOfIdlestan.Core.UI.ViewModels;
+using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Views;
 

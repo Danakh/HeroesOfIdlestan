@@ -38,7 +38,7 @@ aux joueurs ou empêche les mises à jour.
 | Clé de brouillage des sauvegardes | `Core.Model/Persistence/SaveCodec.cs` (`Key`) | La changer rend toutes les sauvegardes illisibles |
 | Préfixe du stockage web | `App.Browser/Services/BrowserServices.cs` (`Prefix`) | Les parties web y sont rangées |
 | Identifiant Android | `App.Android/*.csproj` (`ApplicationId`) | Android refuse une mise à jour d'un autre identifiant |
-| Nom de la sauvegarde | `Core.Render/Runtime/GameRuntime.cs` (`AutosaveFileName`) | Les fichiers existants ne seraient plus trouvés |
+| Nom de la sauvegarde | `Core.Presentation/Runtime/GameSession.cs` (`AutosaveFileName`) | Les fichiers existants ne seraient plus trouvés |
 | Dossier de données bureau | `App.Desktop/DesktopFileSystemService.cs` | Idem |
 
 Changer la clé de brouillage impose de régénérer les fixtures `current` (voir 03).
@@ -57,9 +57,11 @@ un rat, combat → repos → zone suivante. Le jeu se trouve ici :
 | `Core.Controller/Combat/Formation.cs` | Positions en demi-cases, distances, ciblage (GDD §3.4, §4.3, §4.4) |
 | `Core.Controller/Combat/CombatSystem.cs` | La boucle courte, simulée par événements |
 | `Core.Controller/GameController.cs` | `NewGame` (état initial), `SetAutoAdvance` |
-| `Core.Render/Renderers/BattleRenderers.cs` | Le champ de bataille et les combattants |
-| `Core.Render/Runtime/Snapshots.cs` + `Core.UI/ViewModels/HudViewModel.cs` + `Core.UI/Views/HudView.cs` | Le HUD |
-| `Core.Render/Audio/GameAudioService.cs` | `OnGameEvent` : la table événement → son |
+| `Core.Render/Renderers/BattleRenderers.cs` | Le champ de bataille et les combattants (Skia) |
+| `Core.Render.Godot/Battle/` | Le champ de bataille et les combattants (Godot 3D) |
+| `Core.Presentation/Runtime/Snapshots.cs` + `Core.Presentation/ViewModels/HudViewModel.cs` | Le HUD : données et libellés, communs aux deux piles |
+| `Core.UI/Views/HudView.cs` + `App.Godot/ui/hud.tscn` | Le HUD : vue Avalonia, scène Godot |
+| `Core.Presentation/Audio/GameAudioService.cs` | `OnGameEvent` : la table événement → son |
 | `Test.Tests/TestUtilities/Scenarios.cs` | `GameScenarios` |
 
 Pour un autre jeu créé depuis ce dépôt, ces fichiers sont ceux à remplacer.
@@ -70,10 +72,12 @@ Ordre conseillé, pour garder les tests verts à chaque étape :
    les enregistrer dans `EntityRegistry`.
 2. **Systèmes** : un `ISimulationSystem` par mécanique, ajouté dans `GameController.Initialize`.
    Mettre à jour `InvariantTests.SimulationPipeline_HasTheDeclaredOrder`.
-3. **Commandes** : des méthodes sur `GameController`, exposées par `GameRuntime`, appelées par l'UI
-   via `GameRuntimeHost.Invoke`.
-4. **Rendu** : des `IGameRenderer` ajoutés au pipeline de `GameScreen`.
-5. **UI** : un snapshot (record) par panneau, un ViewModel qui le reçoit, une vue qui s'y lie.
+3. **Commandes** : des méthodes sur `GameController`, exposées par `GameSession`, appelées par les
+   ViewModels via `IGameHost.Invoke`.
+4. **Rendu**, sur les deux piles : des `IGameRenderer` ajoutés au pipeline de `GameScreen` (Skia),
+   des vues 3D dans `BattleScene` (Godot).
+5. **UI** : un snapshot (record) par panneau et un ViewModel qui le reçoit, dans Presentation ;
+   puis une vue par pile qui s'y lie (Avalonia en code, scène Godot dans `App.Godot/ui/`).
 6. **Scénarios** : réécrire `GameScenarios` avec les jalons du vrai jeu (premier bâtiment,
    première ressource avancée, premier prestige…), puis régénérer les fixtures.
 7. Supprimer le contenu d'exemple devenu inutile.

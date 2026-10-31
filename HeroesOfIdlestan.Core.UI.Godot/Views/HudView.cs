@@ -1,15 +1,24 @@
 using System.ComponentModel;
 using Godot;
-using HeroesOfIdlestan.Core.UI.Godot.ViewModels;
+using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Godot.Views;
 
 /// <summary>
-/// Barre du haut, construite en code et liée à <see cref="HudViewModel"/> : Godot n'a pas de binding,
-/// chaque propriété notifiée recopie sa valeur dans son contrôle.
+/// Barre du haut. La mise en page vit dans une scène éditée dans Godot (<see cref="ScenePath"/>,
+/// dans le projet App.Godot) ; cette classe l'instancie et la relie à <see cref="HudViewModel"/>.
+/// Godot n'a pas de binding : chaque propriété notifiée recopie sa valeur dans son contrôle.
+///
+/// <para><b>Contrat avec la scène</b> : les nœuds liés portent un nom unique (<c>%Gold</c>…, case
+/// « Access as Unique Name » de l'éditeur) ; leur place dans l'arbre est libre. Un nœud manquant ou
+/// du mauvais type lève à la construction, au démarrage du jeu, plutôt que de laisser un HUD muet.
+/// La scène ne porte aucun script : un script Godot doit vivre dans l'assembly du head.</para>
 /// </summary>
 public sealed class HudView
 {
+    /// <summary>La scène du HUD, dans le projet Godot : seul un chemin <c>res://</c> passe par l'import.</summary>
+    public const string ScenePath = "res://ui/hud.tscn";
+
     private readonly HudViewModel _viewModel;
     private readonly Dictionary<string, Action> _bindings = [];
 
@@ -17,47 +26,35 @@ public sealed class HudView
     {
         _viewModel = viewModel;
 
-        Root = new PanelContainer { Name = "Hud" };
-        Root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopWide);
-        Root.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = new Color(0x101418D0),
-            ContentMarginLeft = 12, ContentMarginRight = 12, ContentMarginTop = 6, ContentMarginBottom = 6,
-        });
+        var scene = GD.Load<PackedScene>(ScenePath)
+            ?? throw new InvalidOperationException($"Scène du HUD introuvable : {ScenePath}");
+        Root = scene.Instantiate<Control>();
 
-        var row = new HBoxContainer();
-        row.AddThemeConstantOverride("separation", 16);
-        Root.AddChild(row);
+        BindText(Node<Label>("Gold"), nameof(HudViewModel.GoldLabel), () => viewModel.GoldLabel);
+        BindText(Node<Label>("Zone"), nameof(HudViewModel.ZoneLabel), () => viewModel.ZoneLabel);
+        BindText(Node<Label>("Hero"), nameof(HudViewModel.HeroLabel), () => viewModel.HeroLabel);
+        BindText(Node<Label>("Bank"), nameof(HudViewModel.BankLabel), () => viewModel.BankLabel);
 
-        row.AddChild(BoundLabel(nameof(HudViewModel.GoldLabel), () => viewModel.GoldLabel));
-        row.AddChild(BoundLabel(nameof(HudViewModel.ZoneLabel), () => viewModel.ZoneLabel));
-        row.AddChild(BoundLabel(nameof(HudViewModel.HeroLabel), () => viewModel.HeroLabel));
-        row.AddChild(BoundButton(nameof(HudViewModel.AutoAdvanceLabel), () => viewModel.AutoAdvanceLabel, viewModel.ToggleAutoAdvance));
-        row.AddChild(BoundButton(nameof(HudViewModel.PauseLabel), () => viewModel.PauseLabel, viewModel.TogglePause));
+        BindButton(Node<Button>("AutoAdvance"), nameof(HudViewModel.AutoAdvanceLabel), () => viewModel.AutoAdvanceLabel, viewModel.ToggleAutoAdvance);
+        BindButton(Node<Button>("Pause"), nameof(HudViewModel.PauseLabel), () => viewModel.PauseLabel, viewModel.TogglePause);
+        BindButton(Node<Button>("Save"), nameof(HudViewModel.SaveLabel), () => viewModel.SaveLabel, viewModel.Save);
 
-        var speeds = new HBoxContainer();
-        speeds.AddThemeConstantOverride("separation", 2);
-        foreach (var speed in new[] { 1, 3, 10 })
-        {
-            var b = new Button { Text = $"x{speed}" };
-            b.Pressed += () => viewModel.SetSpeed(speed);
-            speeds.AddChild(b);
-        }
-        row.AddChild(speeds);
-
-        var bank = BoundLabel(nameof(HudViewModel.BankLabel), () => viewModel.BankLabel);
-        bank.Modulate = Colors.Gray;
-        row.AddChild(bank);
-        row.AddChild(BoundButton(nameof(HudViewModel.SaveLabel), () => viewModel.SaveLabel, viewModel.Save));
-
-        var sound = BoundButton(nameof(HudViewModel.SoundLabel), () => viewModel.SoundLabel, viewModel.ToggleSound);
+        var sound = Node<Button>("Sound");
+        BindButton(sound, nameof(HudViewModel.SoundLabel), () => viewModel.SoundLabel, viewModel.ToggleSound);
         Bind(nameof(HudViewModel.SoundAvailable), () => sound.Visible = viewModel.SoundAvailable);
-        row.AddChild(sound);
+
+        foreach (var speed in new[] { 1, 3, 10 })
+            Node<Button>($"Speed{speed}").Pressed += () => viewModel.SetSpeed(speed);
 
         viewModel.PropertyChanged += OnPropertyChanged;
     }
 
-    public PanelContainer Root { get; }
+    public Control Root { get; }
+
+    private T Node<T>(string uniqueName) where T : Node =>
+        Root.GetNodeOrNull<T>($"%{uniqueName}")
+        ?? throw new InvalidOperationException(
+            $"{ScenePath} : nœud %{uniqueName} ({typeof(T).Name}) absent, ou sans « Access as Unique Name ».");
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -70,19 +67,13 @@ public sealed class HudView
         apply();
     }
 
-    private Label BoundLabel(string property, Func<string> text)
-    {
-        var label = new Label { VerticalAlignment = VerticalAlignment.Center };
+    private void BindText(Label label, string property, Func<string> text) =>
         Bind(property, () => label.Text = text());
-        return label;
-    }
 
-    private Button BoundButton(string property, Func<string> text, Action pressed)
+    private void BindButton(Button button, string property, Func<string> text, Action pressed)
     {
-        var button = new Button();
         button.Pressed += pressed;
         Bind(property, () => button.Text = text());
-        return button;
     }
 
     public void Detach() => _viewModel.PropertyChanged -= OnPropertyChanged;

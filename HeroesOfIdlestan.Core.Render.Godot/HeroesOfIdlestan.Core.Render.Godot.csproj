@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!--
-    Couche View, version Godot : rendu 3D du combat, caméra, sons, runtime. Remplace Core.Render
-    (Skia) sans en dépendre : ne référence que Core.Controller. Voir design/08-godot.md.
+    Couche Render, pile Godot : rendu 3D du combat, caméra, sortie audio Godot, runtime. Pendant de
+    Core.Render (Skia) sans en dépendre : ne référence que Core.Presentation. Voir design/08-godot.md.
   -->
   <PropertyGroup>
     <RootNamespace>HeroesOfIdlestan.Core.Render.Godot</RootNamespace>
@@ -11,14 +11,6 @@
     <PackageReference Include="GodotSharp" Version="4.7.2" />
   </ItemGroup>
   <ItemGroup>
-    <!--
-      Bruitages : les WAV produits par assets/sounds/generate_sounds.py, lus là où le script les écrit
-      plutôt que recopiés. Embarqués sous le même nom qu'avec Skia (voir Audio/SoundBank.cs).
-    -->
-    <EmbeddedResource Include="..\HeroesOfIdlestan.Core.Render\Resources\sounds\*.wav"
-                      Link="Resources\sounds\%(Filename)%(Extension)" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HeroesOfIdlestan.Core.Controller\HeroesOfIdlestan.Core.Controller.csproj" />
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Presentation\HeroesOfIdlestan.Core.Presentation.csproj" />
   </ItemGroup>
 </Project>

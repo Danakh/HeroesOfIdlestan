@@ -1,19 +1,21 @@
 # 04 — Sons
 
-Les bruitages passent par une seule classe, `GameAudioService` (couche Render), qui décide quoi
-jouer et quand ; chaque head fournit une sortie `IAudioService` qui sait comment jouer.
+Les bruitages passent par une seule classe, `GameAudioService` (couche Presentation, commune aux
+deux piles), qui décide quoi jouer et quand ; chaque head fournit une sortie `IAudioService` qui sait
+comment jouer.
 
 ```
  GameEventLog.Added ──► GameAudioService ──► IAudioService (head)
   (Core, événement)     (quoi, quand)          ├─ NativeAudioService  miniaudio : Desktop, Android
                                                ├─ BrowserAudioService Web Audio : Browser
+                                               ├─ GodotAudioService   serveur audio Godot : App.Godot
                                                └─ null                muet : tests, outils
 ```
 
 ## Ajouter un son
 
-1. Une valeur dans `Core.Render/Audio/SoundId.cs`, par exemple `BuildingCompleted`.
-2. Son fichier `Core.Render/Resources/sounds/building_completed.wav` (le nom est la valeur en
+1. Une valeur dans `Core.Presentation/Audio/SoundId.cs`, par exemple `BuildingCompleted`.
+2. Son fichier `Core.Presentation/Resources/sounds/building_completed.wav` (le nom est la valeur en
    snake_case). Deux façons :
    - le synthétiser : une fonction `building_completed()` dans `assets/sounds/generate_sounds.py`,
      ajoutée à `SOUNDS`, puis `python assets/sounds/generate_sounds.py` ;
@@ -27,7 +29,7 @@ jouer et quand ; chaque head fournit une sortie `IAudioService` qui sait comment
 
 ## Règles
 
-- **Le Core ne connaît pas les sons.** Il écrit des événements ; la couche Render les traduit.
+- **Le Core ne connaît pas les sons.** Il écrit des événements ; la couche Presentation les traduit, pour les deux piles à la fois.
 - **Sons courts** (< 1 s) avec fondu de fin : ce sont des retours d'interface. La musique demanderait
   un autre chemin (flux plutôt qu'échantillons en mémoire).
 - **Garde-fous** : intervalle minimum par son (cent victoires en vitesse x10 ne font pas cent sons dans la même

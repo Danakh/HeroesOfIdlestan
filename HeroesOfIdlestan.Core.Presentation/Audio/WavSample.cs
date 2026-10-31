@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 
-namespace HeroesOfIdlestan.Core.Render.Audio;
+namespace HeroesOfIdlestan.Core.Presentation.Audio;
 
 /// <summary>
 /// Décodeur WAV minimal pour les heads qui mixent eux-mêmes (miniaudio) : PCM entier 8/16/24/32

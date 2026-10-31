@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Couche View : rendu SkiaSharp du monde, caméra, input, écrans, runtime. Aucune dépendance Avalonia. -->
+  <!-- Couche Render, pile Skia : rendu SkiaSharp du monde, caméra, input, écrans, runtime. Aucune dépendance Avalonia. -->
   <PropertyGroup>
     <RootNamespace>HeroesOfIdlestan.Core.Render</RootNamespace>
   </PropertyGroup>
@@ -9,13 +9,9 @@
     <PackageReference Include="Svg.Skia" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Bruitages, produits par assets/sounds/generate_sounds.py et chargés par SoundBank. -->
-    <EmbeddedResource Include="Resources\sounds\*.wav" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="HeroesOfIdlestan.Test.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HeroesOfIdlestan.Core.Controller\HeroesOfIdlestan.Core.Controller.csproj" />
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Presentation\HeroesOfIdlestan.Core.Presentation.csproj" />
   </ItemGroup>
 </Project>

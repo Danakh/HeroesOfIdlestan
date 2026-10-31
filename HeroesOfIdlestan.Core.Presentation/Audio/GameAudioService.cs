@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using HeroesOfIdlestan.Core.Model.Meta;
 
-namespace HeroesOfIdlestan.Core.Render.Godot.Audio;
+namespace HeroesOfIdlestan.Core.Presentation.Audio;
 
 /// <summary>
 /// Le chef d'orchestre des bruitages : décide de ce qui se joue et quand, et laisse le

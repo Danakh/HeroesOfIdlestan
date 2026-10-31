@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Overlay Avalonia : hôte sérialisé du runtime, boucle de frame, vues et ViewModels. -->
+  <!-- Overlay Avalonia : hôte du runtime Skia, boucle de frame, vues. Les ViewModels sont dans Core.Presentation. -->
   <PropertyGroup>
     <RootNamespace>HeroesOfIdlestan.Core.UI</RootNamespace>
   </PropertyGroup>

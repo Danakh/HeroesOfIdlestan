@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Couche Presentation : tout ce que les deux piles d'affichage (Skia + Avalonia, Godot) partagent.
+    Session de jeu (contrôleur, sauvegarde auto, commandes), règles des bruitages, snapshots, hôte
+    sérialisé et ViewModels. Aucune dépendance de rendu ni d'UI : ni Skia, ni Avalonia, ni Godot.
+    Voir design/02-architecture.md.
+  -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Core.Presentation</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Bruitages, produits par assets/sounds/generate_sounds.py et chargés par SoundBank. -->
+    <EmbeddedResource Include="Resources\sounds\*.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="HeroesOfIdlestan.Test.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Controller\HeroesOfIdlestan.Core.Controller.csproj" />
+  </ItemGroup>
+</Project>

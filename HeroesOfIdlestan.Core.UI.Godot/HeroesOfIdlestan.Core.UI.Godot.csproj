@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Overlay Godot : hôte sérialisé du runtime, boucle de frame, HUD et ViewModels. Remplace Core.UI (Avalonia). -->
+  <!-- Overlay Godot : hôte du runtime Godot, boucle de frame, liaison des scènes d'UI (res://ui/) aux ViewModels de Core.Presentation. -->
   <PropertyGroup>
     <RootNamespace>HeroesOfIdlestan.Core.UI.Godot</RootNamespace>
   </PropertyGroup>

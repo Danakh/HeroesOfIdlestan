@@ -1,9 +1,8 @@
-namespace HeroesOfIdlestan.Core.Render.Godot.Audio;
+namespace HeroesOfIdlestan.Core.Presentation.Audio;
 
 /// <summary>
 /// Les bruitages du jeu. Chaque valeur correspond au fichier embarqué
-/// <c>HeroesOfIdlestan.Core.Render/Resources/sounds/{nom_en_snake_case}.wav</c>, lié par le csproj de
-/// cette couche — <c>AchievementUnlocked</c> ↔
+/// <c>HeroesOfIdlestan.Core.Presentation/Resources/sounds/{nom_en_snake_case}.wav</c> — <c>AchievementUnlocked</c> ↔
 /// <c>achievement_unlocked.wav</c> (voir <see cref="SoundBank.FileName"/>).
 ///
 /// <para>Jamais sérialisé (couche d'affichage) : une valeur s'ajoute ou se renomme sans toucher aux

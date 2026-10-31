@@ -30,7 +30,7 @@ dotnet run --project HeroesOfIdlestan.App.Desktop
 dotnet run --project HeroesOfIdlestan.App.Browser           # sert la page et ouvre le navigateur
 dotnet publish HeroesOfIdlestan.App.Android -c Release      # APK (hors .slnx, workload android requis)
 dotnet run --project HeroesOfIdlestan.Tool.Animation        # banc d'essai des animations
-godot --path HeroesOfIdlestan.App.Godot                     # version Godot 3D (Godot 4.7 .NET, voir 08)
+dotnet run --project HeroesOfIdlestan.App.Godot            # version Godot 3D (Godot 4.7 .NET, voir 08)
 dotnet test HeroesOfIdlestan.Test.Tests
 python assets/sounds/generate_sounds.py                     # régénère les WAV
 ```
@@ -49,14 +49,15 @@ outille son développement) : voir [02 — Architecture](02-architecture.md#nomm
 ```
 HeroesOfIdlestan.Core.Model/        état persisté, entités, sauvegarde, localisation, données d'animation — aucune dépendance
 HeroesOfIdlestan.Core.Controller/   GameController, simulation, systèmes, modificateurs, succès, stores, lecture des animations
-HeroesOfIdlestan.Core.Render/       rendu Skia, caméra, input, sons, GameRuntime
+HeroesOfIdlestan.Core.Presentation/ GameSession, sons (règles + WAV), snapshots, hôte, ViewModels — commun aux deux piles
+HeroesOfIdlestan.Core.Render/       rendu Skia, caméra, input, GameRuntime
 HeroesOfIdlestan.Core.UI/           overlay Avalonia, GameRuntimeHost, boucle de frame
-HeroesOfIdlestan.Core.Render.Godot/ rendu 3D Godot, caméra, sons, GameRuntime (voir 08)
-HeroesOfIdlestan.Core.UI.Godot/     HUD Godot, GameRuntimeHost, boucle de frame
+HeroesOfIdlestan.Core.Render.Godot/ rendu 3D Godot, caméra, sortie audio, GameRuntime (voir 08)
+HeroesOfIdlestan.Core.UI.Godot/     liaison du HUD, GameRuntimeHost, boucle de frame
 HeroesOfIdlestan.App.Desktop/       head bureau (+ NativeAudioService, partagé avec Android)
 HeroesOfIdlestan.App.Browser/       head WebAssembly (+ wwwroot/)
 HeroesOfIdlestan.App.Android/       head Android (hors .slnx)
-HeroesOfIdlestan.App.Godot/         head Godot 3D : project.godot, Main.cs, assets/characters/
+HeroesOfIdlestan.App.Godot/         head Godot 3D : project.godot, Main.cs, ui/ (scènes d'UI), assets/characters/
 HeroesOfIdlestan.Tool.Animation/    banc d'essai des animations (Avalonia, bureau)
 HeroesOfIdlestan.Test.Tests/        tests xUnit + Saves/ (fixtures)
 assets/sounds/                      générateur des bruitages

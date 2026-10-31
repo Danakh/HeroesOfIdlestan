@@ -13,6 +13,18 @@
     -->
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
+  <PropertyGroup>
+    <!--
+      `dotnet run` et le bouton Démarrer de l'IDE lancent Godot sur ce projet, après le build.
+      Version console : les logs de Godot arrivent dans le terminal. Un autre emplacement se donne
+      par la variable d'environnement GODOT ou par -p:GodotExecutable=...
+    -->
+    <GodotExecutable Condition="'$(GodotExecutable)' == '' And '$(GODOT)' != ''">$(GODOT)</GodotExecutable>
+    <GodotExecutable Condition="'$(GodotExecutable)' == ''">C:\DEV\Godot_v4.7.2\Godot_v4.7.2-stable_mono_win64_console.exe</GodotExecutable>
+    <RunCommand>$(GodotExecutable)</RunCommand>
+    <RunArguments>--path "$(MSBuildProjectDirectory)"</RunArguments>
+    <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HeroesOfIdlestan.Core.UI.Godot\HeroesOfIdlestan.Core.UI.Godot.csproj" />
   </ItemGroup>

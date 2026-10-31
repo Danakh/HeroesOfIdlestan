@@ -13,7 +13,7 @@ toute modification du modèle persisté passe par eux.
 - `SaveService` : estampille, migrations, polymorphisme. `Serialize` ne touche ni à l'horloge ni à
   `LastSaveTime` : c'est ce qui permet d'exiger un round-trip identique octet pour octet.
 - `PolymorphicRegistry` : table unique discriminant → type, écrite `"$kind": "Hero"`.
-- Une sauvegarde illisible lève `SaveCorruptedException`. Au démarrage, `GameRuntime` la met de côté
+- Une sauvegarde illisible lève `SaveCorruptedException`. Au démarrage, `GameSession` la met de côté
   (`autosave.corrupted.sav`) au lieu de l'écraser.
 
 ## Migrations

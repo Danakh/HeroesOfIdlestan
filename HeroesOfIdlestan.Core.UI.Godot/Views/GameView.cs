@@ -1,5 +1,5 @@
 using Godot;
-using HeroesOfIdlestan.Core.UI.Godot.ViewModels;
+using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Godot.Views;
 

@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="HeroesOfIdlestan.Core.Model/HeroesOfIdlestan.Core.Model.csproj" />
   <Project Path="HeroesOfIdlestan.Core.Controller/HeroesOfIdlestan.Core.Controller.csproj" />
+  <Project Path="HeroesOfIdlestan.Core.Presentation/HeroesOfIdlestan.Core.Presentation.csproj" />
   <Project Path="HeroesOfIdlestan.Core.Render/HeroesOfIdlestan.Core.Render.csproj" />
   <Project Path="HeroesOfIdlestan.Core.UI/HeroesOfIdlestan.Core.UI.csproj" />
   <Project Path="HeroesOfIdlestan.Core.Render.Godot/HeroesOfIdlestan.Core.Render.Godot.csproj" />

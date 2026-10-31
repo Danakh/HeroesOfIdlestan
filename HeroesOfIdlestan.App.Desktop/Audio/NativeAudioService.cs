@@ -1,5 +1,5 @@
 using HeroesOfIdlestan.Core.Model.Diagnostics;
-using HeroesOfIdlestan.Core.Render.Audio;
+using HeroesOfIdlestan.Core.Presentation.Audio;
 using SoundFlow.Abstracts;
 using SoundFlow.Abstracts.Devices;
 using SoundFlow.Backends.MiniAudio;

@@ -1,7 +1,7 @@
 using HeroesOfIdlestan.Core.Model.Meta;
-using HeroesOfIdlestan.Core.Render.Audio;
+using HeroesOfIdlestan.Core.Presentation.Audio;
 
-namespace HeroesOfIdlestan.Test.Tests.RenderTests;
+namespace HeroesOfIdlestan.Test.Tests.PresentationTests;
 
 public class SoundBankTests
 {

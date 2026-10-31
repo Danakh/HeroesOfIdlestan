@@ -1,11 +1,14 @@
-namespace HeroesOfIdlestan.Core.Render.Godot.Audio;
+namespace HeroesOfIdlestan.Core.Presentation.Audio;
 
 /// <summary>
-/// Sortie audio. La couche Render dit <i>quoi</i> jouer et <i>quand</i> (<see cref="GameAudioService"/>) ;
-/// la sortie dit <i>comment</i>. Sous Godot, une seule pour toutes les plateformes :
-/// <see cref="GodotAudioService"/>.
+/// Sortie audio du head. Cette couche dit <i>quoi</i> jouer et <i>quand</i>
+/// (<see cref="GameAudioService"/>) ; chaque head dit <i>comment</i> — miniaudio sur le bureau et
+/// Android (<c>NativeAudioService</c>), Web Audio dans le navigateur (<c>BrowserAudioService</c>),
+/// le serveur audio de Godot sous Godot (<c>GodotAudioService</c>).
 ///
-/// <para>Le contrat passe le <b>WAV brut</b>, que Godot décode lui-même.</para>
+/// <para>Le contrat passe le <b>WAV brut</b> : le navigateur le donne tel quel à
+/// <c>decodeAudioData</c>, Godot à <c>AudioStreamWav.LoadFromBuffer</c>, le bureau le décode
+/// lui-même (<see cref="WavSample"/>).</para>
 ///
 /// <para>Un head sans son ne fournit rien : <see cref="GameAudioService"/> accepte null et reste muet
 /// (tests, outils). Aucune méthode ne doit lever : un son absent rend le jeu silencieux, il ne

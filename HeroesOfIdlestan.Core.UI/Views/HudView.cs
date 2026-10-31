@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
-using HeroesOfIdlestan.Core.UI.ViewModels;
+using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Views;
 

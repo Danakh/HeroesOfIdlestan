@@ -68,16 +68,13 @@ public class InvariantTests
 
     /// <summary>
     /// Deux rendus coexistent : Skia + Avalonia (Core.Render, Core.UI) et Godot (Core.Render.Godot,
-    /// Core.UI.Godot, App.Godot). Chacun ne s'appuie que sur Model et Controller, jamais sur l'autre :
+    /// Core.UI.Godot, App.Godot). Chacun ne s'appuie que sur Core.Presentation, jamais sur l'autre :
     /// l'un doit pouvoir être retiré sans toucher au second.
     /// </summary>
     [Fact]
     public void GodotAndSkiaStacks_DoNotReferenceEachOther()
     {
-        var root = new DirectoryInfo(AppContext.BaseDirectory);
-        while (root != null && !File.Exists(Path.Combine(root.FullName, "HeroesOfIdlestan.slnx")))
-            root = root.Parent;
-        Assert.NotNull(root);
+        var root = RepositoryRoot();
 
         string[] godot = ["HeroesOfIdlestan.Core.Render.Godot", "HeroesOfIdlestan.Core.UI.Godot", "HeroesOfIdlestan.App.Godot"];
         string[] skia = ["HeroesOfIdlestan.Core.Render", "HeroesOfIdlestan.Core.UI"];
@@ -93,5 +90,39 @@ public class InvariantTests
         }
 
         Assert.True(offenders.Count == 0, "Références entre les rendus Skia et Godot : " + string.Join(", ", offenders));
+    }
+
+    /// <summary>
+    /// Core.Presentation est partagée par les deux piles : elle ne connaît aucun moteur. Un paquet
+    /// Skia, Avalonia ou Godot, ou une référence vers une couche d'affichage, la rendrait inutilisable
+    /// par l'autre pile.
+    /// </summary>
+    [Fact]
+    public void PresentationLayer_DependsOnNoEngine()
+    {
+        var project = Path.Combine(RepositoryRoot().FullName,
+            "HeroesOfIdlestan.Core.Presentation", "HeroesOfIdlestan.Core.Presentation.csproj");
+        var xml = XDocument.Load(project);
+
+        var references = xml.Descendants("ProjectReference")
+            .Select(r => Path.GetFileNameWithoutExtension((string?)r.Attribute("Include") ?? ""))
+            .ToList();
+        Assert.Equal(["HeroesOfIdlestan.Core.Controller"], references);
+
+        string[] engines = ["SkiaSharp", "Svg.Skia", "Avalonia", "Godot"];
+        var packages = xml.Descendants("PackageReference")
+            .Select(p => (string?)p.Attribute("Include") ?? "")
+            .Where(p => engines.Any(e => p.StartsWith(e, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        Assert.True(packages.Count == 0, "Paquets de moteur dans Core.Presentation : " + string.Join(", ", packages));
+    }
+
+    private static DirectoryInfo RepositoryRoot()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !File.Exists(Path.Combine(root.FullName, "HeroesOfIdlestan.slnx")))
+            root = root.Parent;
+        Assert.NotNull(root);
+        return root;
     }
 }

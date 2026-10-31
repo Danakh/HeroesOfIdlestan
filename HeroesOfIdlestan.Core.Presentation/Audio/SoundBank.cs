@@ -1,7 +1,7 @@
 using System.Text;
 using HeroesOfIdlestan.Core.Model.Diagnostics;
 
-namespace HeroesOfIdlestan.Core.Render.Audio;
+namespace HeroesOfIdlestan.Core.Presentation.Audio;
 
 /// <summary>
 /// Charge les WAV embarqués dans cet assembly et les remet au head. Un fichier manquant est

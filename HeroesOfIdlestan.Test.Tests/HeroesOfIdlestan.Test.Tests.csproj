@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HeroesOfIdlestan.Core.Model\HeroesOfIdlestan.Core.Model.csproj" />
     <ProjectReference Include="..\HeroesOfIdlestan.Core.Controller\HeroesOfIdlestan.Core.Controller.csproj" />
+    <ProjectReference Include="..\HeroesOfIdlestan.Core.Presentation\HeroesOfIdlestan.Core.Presentation.csproj" />
     <ProjectReference Include="..\HeroesOfIdlestan.Core.Render\HeroesOfIdlestan.Core.Render.csproj" />
   </ItemGroup>
   <ItemGroup>

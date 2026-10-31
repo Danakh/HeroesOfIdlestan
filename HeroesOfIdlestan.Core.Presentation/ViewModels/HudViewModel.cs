@@ -1,12 +1,12 @@
-using HeroesOfIdlestan.Core.Render.Godot.Runtime;
+using HeroesOfIdlestan.Core.Presentation.Runtime;
 
-namespace HeroesOfIdlestan.Core.UI.Godot.ViewModels;
+namespace HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 /// <summary>
-/// Barre du haut. Ne lit jamais le runtime lui-même : <see cref="Refresh"/> reçoit un instantané déjà
-/// pris sous verrou, et les commandes repassent par l'hôte.
+/// Barre du haut, commune aux deux piles. Ne lit jamais la session elle-même : <see cref="Refresh"/>
+/// reçoit un instantané déjà pris sous verrou, et les commandes repassent par l'hôte.
 /// </summary>
-public sealed class HudViewModel(GameRuntimeHost host) : ViewModelBase
+public sealed class HudViewModel(IGameHost host) : ViewModelBase
 {
     private HudSnapshot _last = HudSnapshot.Empty;
     private string _goldLabel = "";
