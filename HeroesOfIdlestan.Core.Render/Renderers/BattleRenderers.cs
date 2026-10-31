@@ -1,6 +1,7 @@
 using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Model.State;
+using HeroesOfIdlestan.Core.Presentation.Battle;
 using HeroesOfIdlestan.Core.Render.Rendering;
 using SkiaSharp;
 
@@ -25,7 +26,7 @@ public static class BattleLayout
 
     /// <summary>
     /// Le champ de bataille, agrandi en hauteur pour tenir la ligne la plus longue des deux camps
-    /// (15 combattants de front en partie de debug).
+    /// (5 combattants de front en partie de debug).
     /// </summary>
     public static SKRect BoundsFor(GameState state)
     {
@@ -41,9 +42,7 @@ public static class BattleLayout
     public static SKPoint? PositionOf(Entity fighter, IReadOnlyList<Entity> side, bool isHero)
     {
         // Les vivants se resserrent ; un mort reste dessiné là où il est tombé, parmi toute sa ligne.
-        var line = fighter.IsAlive
-            ? Formation.LineOf(side, fighter.Line)
-            : side.Where(f => f.Line == fighter.Line).ToList();
+        var line = Formation.LineOf(side, fighter.Line, includeDead: !fighter.IsAlive);
         int index = line.IndexOf(fighter);
         if (index < 0) return null;
 
@@ -78,14 +77,22 @@ public sealed class GroundRenderer : IGameRenderer
 
 /// <summary>
 /// Les combattants : un rond marqué de l'initiale de sa classe ou de son espèce (G : guerrier,
-/// R : rat, G sur fond vert : gobelin), sa barre de vie, et une courte fente vers l'adversaire à
-/// chaque action.
+/// R : rat, G sur fond vert : gobelin), sa barre de vie, une courte fente vers l'adversaire à
+/// chaque action, et une marche dandinée quand sa place change (<see cref="FighterWalk"/>).
 /// </summary>
 public sealed class FighterRenderer : IGameRenderer
 {
     /// <summary>Durée de la fente qui suit une action, en ticks de jeu.</summary>
     private const float LungeTicks = 20f;
     private const float LungeDistance = 14f;
+    /// <summary>Dandinement de la marche : écart latéral et gonflement à chaque pas.</summary>
+    private const float SwayDistance = 4f;
+    private const float StepSwell = 0.08f;
+
+    /// <summary>La marche de chaque combattant affiché ; ceux qui ne le sont plus en sortent.</summary>
+    private readonly Dictionary<Entity, FighterWalk> _walks = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<Entity> _seen = new(ReferenceEqualityComparer.Instance);
+    private readonly List<Entity> _gone = [];
 
     private readonly SKPaint _heroFill = new() { Color = new SKColor(0x3F, 0x7C, 0xD6), IsAntialias = true };
     private readonly SKPaint _monsterFill = new() { Color = new SKColor(0xA8, 0x55, 0x3A), IsAntialias = true };
@@ -112,20 +119,54 @@ public sealed class FighterRenderer : IGameRenderer
             Draw(canvas, context, state.Monsters[i], state.Monsters, isHero: false);
 
         canvas.Restore();
+
+        _gone.Clear();
+        foreach (var fighter in _walks.Keys)
+            if (!_seen.Contains(fighter)) _gone.Add(fighter);
+        foreach (var fighter in _gone) _walks.Remove(fighter);
+        _seen.Clear();
     }
 
     private void Draw(SKCanvas canvas, FrameContext context, Entity fighter, IReadOnlyList<Entity> side, bool isHero)
     {
-        if (BattleLayout.PositionOf(fighter, side, isHero) is not { } position) return;
-
         var state = context.State;
+        long now = state.Clock.CurrentTick;
+        var place = BattleLayout.PositionOf(fighter, side, isHero);
+
+        // Un vivant marche vers sa place ; un mort reste là où il est tombé.
+        _seen.Add(fighter);
+        if (!_walks.TryGetValue(fighter, out var walk))
+        {
+            if (place is not { } start) return;
+            _walks[fighter] = walk = new FighterWalk();
+            walk.Target(start.X, start.Y, now);
+        }
+        else if (!fighter.IsAlive)
+            walk.Halt(now);
+        else if (place is { } target)
+            walk.Target(target.X, target.Y, now);
+
+        var (x, y) = walk.PositionAt(now);
+        var position = new SKPoint(x, y);
         var stats = CombatSystem.Stats(state, fighter);
         float r = BattleLayout.FighterRadius;
 
-        if (fighter.IsAlive)
+        if (fighter.IsAlive && walk.IsWalking(now))
         {
-            // Fente vers l'adversaire juste après une action, en ticks de jeu : elle suit pause et vitesse.
-            long sinceAction = state.Clock.CurrentTick - (fighter.NextActionTick - stats.CooldownTicks);
+            // Un pas = un balancement d'un côté puis de l'autre, perpendiculaire à la marche.
+            var (hx, hy) = walk.Heading;
+            float length = MathF.Sqrt(hx * hx + hy * hy);
+            float swing = MathF.Sin(2 * MathF.PI * walk.StepPhase(now));
+            position.X += -hy / length * SwayDistance * swing;
+            position.Y += hx / length * SwayDistance * swing;
+            r *= 1 + StepSwell * MathF.Abs(swing);
+        }
+
+        // Fente vers l'adversaire juste après une action, en ticks de jeu : elle suit pause et vitesse.
+        // Qui n'a rien pu faire (aucune action depuis sa ligne, personne à portée) reste au repos.
+        if (fighter.IsAlive && fighter.LastActionTick is { } lastAction)
+        {
+            long sinceAction = state.Clock.CurrentTick - lastAction;
             if (sinceAction >= 0 && sinceAction < LungeTicks)
                 position.X += (isHero ? 1 : -1) * LungeDistance * (1 - sinceAction / LungeTicks);
         }

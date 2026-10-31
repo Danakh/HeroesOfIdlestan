@@ -7,18 +7,115 @@ namespace HeroesOfIdlestan.Core.Controller.Combat;
 /// un mort sort de sa ligne, qui se resserre aussitôt.
 ///
 /// <para>Une ligne de <c>n</c> combattants est centrée ; ses positions, en demi-cases, valent
-/// −(n−1), −(n−3), …, n−1, dans l'ordre de la liste (« de haut en bas »).</para>
+/// −(n−1), −(n−3), …, n−1, dans l'ordre « de haut en bas » : par <see cref="Entity.Rank"/>, puis
+/// par ordre de la liste.</para>
 /// </summary>
 public static class Formation
 {
-    /// <summary>Les vivants d'une ligne, de haut en bas.</summary>
-    public static List<Entity> LineOf(IReadOnlyList<Entity> side, int line)
+    /// <summary>Les vivants d'une ligne, de haut en bas ; avec <paramref name="includeDead"/>, les morts aussi.</summary>
+    public static List<Entity> LineOf(IReadOnlyList<Entity> side, int line, bool includeDead = false)
     {
         var members = new List<Entity>();
         for (int i = 0; i < side.Count; i++)
-            if (side[i].IsAlive && side[i].Line == line) members.Add(side[i]);
+            if ((includeDead || side[i].IsAlive) && side[i].Line == line) members.Add(side[i]);
+        // Tri par insertion, stable : à égalité de rang, l'ordre de la liste.
+        for (int i = 1; i < members.Count; i++)
+        {
+            var member = members[i];
+            int j = i - 1;
+            while (j >= 0 && members[j].Rank > member.Rank) { members[j + 1] = members[j]; j--; }
+            members[j + 1] = member;
+        }
         return members;
     }
+
+    // ── Mort et remplacement (GDD §3.2) ──────────────────────────────────
+
+    /// <summary>
+    /// Place qu'occupait <paramref name="fallen"/>, qui vient de mourir, dans sa ligne : le nombre de
+    /// vivants de la ligne situés au-dessus de lui. À prendre avant de le retirer de la liste.
+    /// </summary>
+    public static int HoleOf(IReadOnlyList<Entity> side, Entity fallen)
+    {
+        var line = LineOf(side, fallen.Line, includeDead: true);
+        int hole = 0;
+        foreach (var member in line)
+        {
+            if (ReferenceEquals(member, fallen)) break;
+            if (member.IsAlive) hole++;
+        }
+        return hole;
+    }
+
+    /// <summary>
+    /// Rétablit la règle de la pyramide après une mort (GDD §3.2). La ligne touchée s'est déjà
+    /// resserrée (seuls les vivants comptent) ; si elle n'a plus strictement plus de combattants que
+    /// la ligne de derrière, un combattant situé derrière le trou avance pour le combler — d'abord
+    /// celui dont la ligne préférée est la ligne à combler, puis le plus haut. Son départ laisse à son
+    /// tour un trou dans sa ligne : on répète, ligne par ligne, jusqu'à une formation valide.
+    ///
+    /// <para>Sans trou connu (<paramref name="hole"/> null : formation chargée, début de combat),
+    /// tous les combattants de la ligne de derrière sont candidats, et l'arrivant prend le centre.</para>
+    /// </summary>
+    /// <returns>Les combattants qui ont avancé, dans l'ordre.</returns>
+    public static List<Entity> Settle(IReadOnlyList<Entity> side, int fromLine = 1, int? hole = null)
+    {
+        var advanced = new List<Entity>();
+        for (int line = Math.Max(1, fromLine); line < DeepestLine(side); line++)
+        {
+            var front = LineOf(side, line);
+            var back = LineOf(side, line + 1);
+            int? nextHole = null;
+            int moves = 0;
+            while (back.Count > 0 && front.Count <= back.Count)
+            {
+                int slot = Math.Clamp(hole ?? front.Count / 2, 0, front.Count);
+                int from = PickAdvancer(back, line, hole.HasValue ? slot : null);
+                var advancer = back[from];
+
+                advancer.Line = line;
+                front.Insert(slot, advancer);
+                for (int i = 0; i < front.Count; i++) front[i].Rank = i;
+                back.RemoveAt(from);
+                advanced.Add(advancer);
+
+                nextHole = from;
+                hole = null; // un deuxième arrivant (formation déjà invalide) n'a plus de trou désigné
+                moves++;
+            }
+            // Le trou se propage à la ligne de derrière seulement si elle a perdu un seul combattant.
+            hole = moves == 1 ? nextHole : null;
+        }
+        return advanced;
+    }
+
+    /// <summary>
+    /// Index, dans <paramref name="back"/>, du combattant qui avance en ligne <paramref name="line"/>.
+    /// Derrière un trou d'une ligne en quinconce, seuls les un ou deux combattants adjacents au trou
+    /// sont candidats (indices <c>slot − 1</c> et <c>slot</c>).
+    /// </summary>
+    private static int PickAdvancer(List<Entity> back, int line, int? slot)
+    {
+        int first = 0, last = back.Count - 1;
+        if (slot is { } s)
+        {
+            first = Math.Clamp(s - 1, 0, back.Count - 1);
+            last = Math.Clamp(s, 0, back.Count - 1);
+        }
+        for (int i = first; i <= last; i++)
+            if (back[i].PreferredLine == line) return i;
+        return first;
+    }
+
+    private static int DeepestLine(IReadOnlyList<Entity> side)
+    {
+        int deepest = 0;
+        for (int i = 0; i < side.Count; i++)
+            if (side[i].IsAlive) deepest = Math.Max(deepest, side[i].Line);
+        return deepest;
+    }
+
+    // ── Géométrie et portées ─────────────────────────────────────────────
 
     /// <summary>Position en demi-cases du <paramref name="index"/>-ième combattant d'une ligne de <paramref name="count"/>.</summary>
     public static int HalfPosition(int index, int count) => 2 * index - (count - 1);
@@ -58,19 +155,21 @@ public static class Formation
     {
         Entity? best = null;
         int bestLine = 0, bestLateral = 0;
-        for (int i = 0; i < targetSide.Count; i++)
+        int deepest = DeepestLine(targetSide);
+        for (int line = 1; line <= deepest; line++)
         {
-            var candidate = targetSide[i];
-            if (!candidate.IsAlive) continue;
-            int distance = Distance(attacker, attackerSide, candidate, targetSide);
-            if (distance < minRange || distance > maxRange) continue;
-            int lateral = distance - (attacker.Line + candidate.Line - 1);
-            // Liste parcourue de haut en bas : à égalité, le premier trouvé l'emporte.
-            if (best == null || candidate.Line > bestLine || (candidate.Line == bestLine && lateral < bestLateral))
+            // Chaque ligne parcourue de haut en bas : à égalité, le premier trouvé l'emporte.
+            foreach (var candidate in LineOf(targetSide, line))
             {
-                best = candidate;
-                bestLine = candidate.Line;
-                bestLateral = lateral;
+                int distance = Distance(attacker, attackerSide, candidate, targetSide);
+                if (distance < minRange || distance > maxRange) continue;
+                int lateral = distance - (attacker.Line + candidate.Line - 1);
+                if (best == null || candidate.Line > bestLine || (candidate.Line == bestLine && lateral < bestLateral))
+                {
+                    best = candidate;
+                    bestLine = candidate.Line;
+                    bestLateral = lateral;
+                }
             }
         }
         return best;

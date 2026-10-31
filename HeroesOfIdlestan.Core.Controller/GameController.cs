@@ -34,18 +34,19 @@ public sealed class GameController
     // ── Cycle de vie ─────────────────────────────────────────────────────
 
     /// <summary>Nouvelle partie : un guerrier seul, en zone 1, déjà au combat (GDD §3.1).</summary>
-    public void NewGame(int seed) => Start(seed, heroCount: 1, debug: false);
+    public void NewGame(int seed) => Start(seed, formation: [1], debug: false);
 
     /// <summary>
     /// Partie de debug : <see cref="GameContent.DebugFighterCount"/> guerriers contre autant de
-    /// gobelins à chaque zone, tous en ligne 1.
+    /// gobelins à chaque zone, les deux camps en <see cref="GameContent.DebugFormation"/>.
     /// </summary>
-    public void NewDebugGame(int seed) => Start(seed, GameContent.DebugFighterCount, debug: true);
+    public void NewDebugGame(int seed) => Start(seed, GameContent.DebugFormation, debug: true);
 
     /// <summary>Remet le contrôleur dans l'état vide du lancement : aucune équipe, rien ne s'y passe.</summary>
     public void Clear() => Initialize(new GameState());
 
-    private void Start(int seed, int heroCount, bool debug)
+    /// <param name="formation">Nombre de guerriers par ligne, de la ligne 1 à la dernière.</param>
+    private void Start(int seed, IReadOnlyList<int> formation, bool debug)
     {
         var state = new GameState
         {
@@ -53,9 +54,9 @@ public sealed class GameController
             Prng = new GamePrng(seed ^ 0x5EED),
         };
         state.Run.Debug = debug;
-        for (int i = 0; i < heroCount; i++)
+        foreach (int line in GameContent.LinesOf(formation))
         {
-            var warrior = new HeroEntity { Class = HeroClass.Warrior, Line = 1 };
+            var warrior = new HeroEntity { Class = HeroClass.Warrior, Line = line, FormationLine = line, PreferredLine = line };
             warrior.Health = GameContent.HeroStats(warrior.Class, warrior.Level).MaxHealth;
             state.Heroes.Add(warrior);
         }

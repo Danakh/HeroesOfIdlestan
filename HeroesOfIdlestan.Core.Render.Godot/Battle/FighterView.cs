@@ -2,12 +2,14 @@ using Godot;
 using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Model.State;
+using HeroesOfIdlestan.Core.Presentation.Battle;
 
 namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 
 /// <summary>
 /// Un combattant dans la scène : le modèle animé, sa barre de vie, une fente vers l'adversaire à
-/// chaque action, et la chute à sa mort.
+/// chaque action, la marche quand sa place change (<see cref="FighterWalk"/> : animation de marche,
+/// tourné dans le sens de la marche), et la chute à sa mort.
 ///
 /// <para>Tout suit le temps de jeu, pas le temps réel : les animations ralentissent, accélèrent ou
 /// s'arrêtent avec la vitesse et la pause, comme la simulation.</para>
@@ -33,6 +35,8 @@ internal sealed class FighterView
     /// <summary>Un monstre tué reste au sol ce temps-là (secondes de jeu) avant de disparaître.</summary>
     private const float CorpseSeconds = 1.2f;
     private const float BlendSeconds = 0.25f;
+    /// <summary>Vitesse à laquelle le corps se tourne vers sa direction (marche ou adversaire), par seconde de jeu.</summary>
+    private const float TurnRate = 12f;
     private const float ModelHeight = 1.9f;
     private const float MonsterScale = 0.6f;
     private const float BarWidth = 0.9f;
@@ -51,6 +55,11 @@ internal sealed class FighterView
     private readonly Node3D _bar;
     private readonly MeshInstance3D _barFill;
     private readonly float _height;
+    private readonly Node3D _body;
+    /// <summary>Orientation face au camp d'en face (le glTF regarde vers +Z).</summary>
+    private readonly float _facingYaw;
+    private readonly FighterWalk _walk = new();
+    /// <summary>Dernière position affichée, hors fente : là où le corps tombe.</summary>
     private Vector3 _home;
     private bool _wasAlive = true;
     private float _fall;
@@ -74,8 +83,10 @@ internal sealed class FighterView
         Root.AddChild(_pivot);
 
         var body = model?.Instantiate<Node3D>() ?? Placeholder();
+        _body = body;
         // Le glTF regarde vers +Z : un quart de tour l'oriente vers le camp d'en face.
-        body.RotationDegrees = new Vector3(0, isHero ? 90 : -90, 0);
+        _facingYaw = Mathf.DegToRad(isHero ? 90 : -90);
+        body.Rotation = new Vector3(0, _facingYaw, 0);
         body.Scale = Vector3.One * scale;
         _pivot.AddChild(body);
         Collect(body);
@@ -102,14 +113,26 @@ internal sealed class FighterView
     /// <summary>Recale l'état visuel sur celui du combattant ; <paramref name="speed"/> vaut 0 en pause.</summary>
     public void Update(GameState state, Entity fighter, IReadOnlyList<Entity> side, float speed, float delta, Basis camera)
     {
-        if (BattleLayout.PositionOf(fighter, side, _isHero) is { } home) _home = home;
+        long now = state.Clock.CurrentTick;
+        var place = BattleLayout.PositionOf(fighter, side, _isHero);
+        // Un vivant marche vers sa place ; un mort reste là où il est tombé. La première fois (vue
+        // neuve, même d'un mort), il y est posé.
+        if (place is { } target && (fighter.IsAlive || !_walk.IsPlaced))
+            _walk.Target(target.X, target.Z, now);
+        else if (!fighter.IsAlive)
+            _walk.Halt(now);
+        var (x, z) = _walk.PositionAt(now);
+        _home = new Vector3(x, 0, z);
+        bool walking = fighter.IsAlive && _walk.IsWalking(now);
+        UpdateFacing(walking, speed, delta);
         var stats = CombatSystem.Stats(state, fighter);
 
         var position = _home;
-        if (fighter.IsAlive)
+        // Fente vers l'adversaire juste après une action, en ticks de jeu : elle suit pause et vitesse.
+        // Qui n'a rien pu faire (aucune action depuis sa ligne, personne à portée) reste au repos.
+        if (fighter.IsAlive && fighter.LastActionTick is { } lastAction)
         {
-            // Fente vers l'adversaire juste après une action, en ticks de jeu : elle suit pause et vitesse.
-            long sinceAction = state.Clock.CurrentTick - (fighter.NextActionTick - stats.CooldownTicks);
+            long sinceAction = state.Clock.CurrentTick - lastAction;
             if (sinceAction >= 0 && sinceAction < LungeTicks)
                 position.X += (_isHero ? 1 : -1) * LungeDistance * (1 - sinceAction / LungeTicks);
         }
@@ -121,7 +144,7 @@ internal sealed class FighterView
             SetTint(fighter.IsAlive ? _aliveTint : DeadTint);
         }
         UpdateFall(fighter.IsAlive, speed, delta);
-        UpdateAnimation(fighter.IsAlive ? ChooseAnimation(state.Run) : null, speed);
+        UpdateAnimation(fighter.IsAlive ? walking ? Walk : ChooseAnimation(state.Run) : null, speed);
 
         _bar.Visible = fighter.IsAlive;
         if (fighter.IsAlive) UpdateHealthBar(Math.Clamp(fighter.Health / (float)stats.MaxHealth, 0f, 1f), camera);
@@ -172,6 +195,19 @@ internal sealed class FighterView
     private void Play(string name)
     {
         if (_animation != null && _animation.HasAnimation(name)) _animation.Play(name, BlendSeconds);
+    }
+
+    /// <summary>En marche, le corps se tourne vers où il va ; arrivé, il refait face à l'adversaire.</summary>
+    private void UpdateFacing(bool walking, float speed, float delta)
+    {
+        float wanted = _facingYaw;
+        if (walking)
+        {
+            var (hx, hz) = _walk.Heading;
+            wanted = Mathf.Atan2(hx, hz);
+        }
+        float weight = Mathf.Clamp(delta * speed * TurnRate, 0f, 1f);
+        _body.Rotation = new Vector3(0, Mathf.LerpAngle(_body.Rotation.Y, wanted, weight), 0);
     }
 
     private void UpdateFall(bool alive, float speed, float delta)

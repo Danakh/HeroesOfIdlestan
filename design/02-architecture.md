@@ -141,7 +141,7 @@ rien et rien n'est sauvegardé. `MenuViewModel` (commun) propose :
 |---|---|---|
 | Continuer (si une sauvegarde existe) | `ContinueGame` | Charge `autosave.sav` et crédite l'absence ; sans sauvegarde lisible, nouvelle partie |
 | Nouvelle partie | `StartNewGame` | Un guerrier seul en zone 1 ; remplace la sauvegarde |
-| Partie de debug | `StartDebugGame` | 15 guerriers contre 15 gobelins à chaque zone (`RunState.Debug`), tous en ligne 1 ; jamais sauvegardée |
+| Partie de debug | `StartDebugGame` | 15 guerriers contre 15 gobelins à chaque zone (`RunState.Debug`), en pyramide 5-4-3-2-1 ; jamais sauvegardée |
 
 Le bouton Menu du HUD (`ReturnToMenu`) sauvegarde, vide le champ de bataille et rouvre le menu. Le
 HUD est masqué tant que le menu est affiché. Côté Avalonia, `MenuView` est construit en code ; côté

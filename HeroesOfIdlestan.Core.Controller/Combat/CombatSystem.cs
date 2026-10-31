@@ -61,6 +61,9 @@ public sealed class CombatSystem : ISimulationSystem
         }
         foreach (var hero in state.Heroes)
             if (hero.IsAlive) hero.NextActionTick = tick + Stats(state, hero).CooldownTicks;
+        // Les groupes du contenu sont des pyramides valides ; une sauvegarde éditée à la main, peut-être pas.
+        Formation.Settle(state.Heroes);
+        Formation.Settle(state.Monsters);
 
         state.Run.Phase = RunPhase.Fighting;
         state.Run.LastOutcome = FightOutcome.None;
@@ -106,10 +109,25 @@ public sealed class CombatSystem : ISimulationSystem
         var target = Formation.ChooseTarget(actor, allies, enemies, action.MinRange, action.MaxRange);
         if (target == null) return;
 
+        actor.LastActionTick = tick;
         target.Health = Math.Max(0, target.Health - stats.Damage);
-        if (target is MonsterEntity && !target.IsAlive) state.Monsters.Remove((MonsterEntity)target);
+        if (!target.IsAlive) OnDeath(state, target, enemies, tick);
 
         if (IsFightOver(state)) EndFight(state, tick, modifiers);
+    }
+
+    /// <summary>
+    /// Une mort, en temps réel (GDD §3.2) : la ligne se resserre, puis ceux de derrière avancent si
+    /// la pyramide n'est plus valide. Un monstre tué quitte la liste ; un héros mort y reste.
+    /// Celui qui avance marche jusqu'à sa nouvelle place (<see cref="GameContent.MoveTicks"/>) et
+    /// n'agit qu'une fois arrivé.
+    /// </summary>
+    private static void OnDeath(GameState state, Entity fallen, IReadOnlyList<Entity> side, long tick)
+    {
+        int hole = Formation.HoleOf(side, fallen);
+        if (fallen is MonsterEntity monster) state.Monsters.Remove(monster);
+        foreach (var advancer in Formation.Settle(side, fallen.Line, hole))
+            advancer.NextActionTick = Math.Max(advancer.NextActionTick, tick + GameContent.MoveTicks);
     }
 
     private static bool IsFightOver(GameState state) =>
@@ -161,7 +179,8 @@ public sealed class CombatSystem : ISimulationSystem
     /// <summary>
     /// Fin du repos : soins de base des survivants, puis zone suivante (si l'avance automatique est
     /// active) après une victoire, ou zone précédente après une défaite. Sans résurrection dans la
-    /// version de base, une défaite relève toute l'équipe : sinon le run s'arrêterait là.
+    /// version de base, une défaite relève toute l'équipe, qui reprend la formation choisie par le
+    /// joueur : sinon le run s'arrêterait là. Après une victoire, personne ne recule (GDD §3.2).
     /// </summary>
     private static void EndRest(GameState state, long tick)
     {
@@ -178,8 +197,15 @@ public sealed class CombatSystem : ISimulationSystem
         run.HighestZone = Math.Max(run.HighestZone, run.Zone);
 
         foreach (var hero in state.Heroes)
+        {
+            if (run.LastOutcome == FightOutcome.Defeat)
+            {
+                hero.Line = hero.FormationLine;
+                hero.Rank = 0;
+            }
             if (hero.IsAlive || run.LastOutcome == FightOutcome.Defeat)
                 hero.Health = Stats(state, hero).MaxHealth;
+        }
 
         StartFight(state, tick);
     }

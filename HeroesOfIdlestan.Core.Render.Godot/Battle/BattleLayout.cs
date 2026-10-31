@@ -36,9 +36,7 @@ public static class BattleLayout
     public static Vector3? PositionOf(Entity fighter, IReadOnlyList<Entity> side, bool isHero)
     {
         // Les vivants se resserrent ; un mort reste là où il est tombé, parmi toute sa ligne.
-        var line = fighter.IsAlive
-            ? Formation.LineOf(side, fighter.Line)
-            : side.Where(f => f.Line == fighter.Line).ToList();
+        var line = Formation.LineOf(side, fighter.Line, includeDead: !fighter.IsAlive);
         int index = line.IndexOf(fighter);
         if (index < 0) return null;
 

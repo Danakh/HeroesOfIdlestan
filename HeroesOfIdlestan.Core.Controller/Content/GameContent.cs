@@ -27,6 +27,12 @@ public static class GameContent
     /// <summary>Niveau maximum d'une classe (GDD §5.4).</summary>
     public const int MaxLevel = 20;
 
+    /// <summary>
+    /// Durée d'un déplacement dans la formation (avancée, resserrement, retour en place) : environ une
+    /// seconde de marche. Celui qui avance n'agit pas avant d'être arrivé.
+    /// </summary>
+    public const long MoveTicks = GameClock.TicksPerSecond;
+
     /// <summary>Durée du repos entre deux combats.</summary>
     public const long RestTicks = 3 * GameClock.TicksPerSecond / 2;
 
@@ -84,17 +90,27 @@ public static class GameContent
     // ── Partie de debug ──────────────────────────────────────────────────
 
     /// <summary>
-    /// Taille des deux camps d'une partie de debug. Tous en ligne 1 : seule la ligne 1 frappe au
-    /// corps à corps, et l'avancée des lignes arrière (GDD §3.2) n'existe pas encore.
+    /// Formation des deux camps d'une partie de debug, ligne par ligne : une pyramide 5-4-3-2-1 de
+    /// 15 combattants. Seule la ligne 1 frappe au corps à corps ; les autres attendent qu'une mort
+    /// les fasse avancer (GDD §3.2).
     /// </summary>
-    public const int DebugFighterCount = 15;
+    public static readonly IReadOnlyList<int> DebugFormation = [5, 4, 3, 2, 1];
 
-    /// <summary>Le groupe de chaque zone d'une partie de debug : <see cref="DebugFighterCount"/> gobelins.</summary>
-    public static IEnumerable<MonsterEntity> DebugMonsterGroup()
+    /// <summary>Nombre de combattants de chaque camp d'une partie de debug.</summary>
+    public static int DebugFighterCount => DebugFormation.Sum();
+
+    /// <summary>Les lignes d'une formation, une par combattant, de la ligne 1 à la dernière.</summary>
+    public static IEnumerable<int> LinesOf(IReadOnlyList<int> formation)
     {
-        for (int i = 0; i < DebugFighterCount; i++)
-            yield return new MonsterEntity { Species = MonsterSpecies.Goblin, Line = 1 };
+        for (int line = 0; line < formation.Count; line++)
+            for (int i = 0; i < formation[line]; i++)
+                yield return line + 1;
     }
+
+    /// <summary>Le groupe de chaque zone d'une partie de debug : des gobelins en <see cref="DebugFormation"/>.</summary>
+    public static IEnumerable<MonsterEntity> DebugMonsterGroup() =>
+        LinesOf(DebugFormation).Select(line =>
+            new MonsterEntity { Species = MonsterSpecies.Goblin, Line = line, PreferredLine = line });
 
     // ── Récompenses ──────────────────────────────────────────────────────
 

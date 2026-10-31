@@ -106,7 +106,7 @@ public sealed class BattleScene : IDisposable
     }
 
     /// <summary>
-    /// Agrandit le sol pour la ligne la plus longue des deux camps (15 combattants de front en partie
+    /// Agrandit le sol pour la ligne la plus longue des deux camps (5 combattants de front en partie
     /// de debug) et recule la caméra d'autant.
     /// </summary>
     private void FitBattlefield(GameState state)

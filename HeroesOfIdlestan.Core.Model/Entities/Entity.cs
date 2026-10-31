@@ -42,14 +42,30 @@ public abstract class Entity
     [JsonIgnore]
     public abstract EntityKind Kind { get; }
 
-    /// <summary>Ligne de la formation, 1 = le front (GDD §3.1).</summary>
+    /// <summary>Ligne de la formation, 1 = le front (GDD §3.1). Change en combat quand le combattant avance (GDD §3.2).</summary>
     public int Line { get; set; } = 1;
+
+    /// <summary>
+    /// Rang dans la ligne, pour l'ordre « de haut en bas » : à égalité de rang, l'ordre de la liste.
+    /// Renuméroté quand un combattant avance et s'insère dans le trou laissé par un mort (GDD §3.2).
+    /// </summary>
+    public int Rank { get; set; }
+
+    /// <summary>Ligne préférée (GDD §3.3) : prioritaire pour avancer combler cette ligne.</summary>
+    public int PreferredLine { get; set; } = 1;
 
     /// <summary>Points de vie restants ; 0 = mort.</summary>
     public ObfLong Health { get; set; }
 
     /// <summary>Tick de la prochaine action. Persisté : une partie rechargée reprend au même rythme.</summary>
     public long NextActionTick { get; set; }
+
+    /// <summary>
+    /// Tick de la dernière action réellement faite (une cible touchée) ; null si aucune. Un combattant
+    /// sans action possible depuis sa ligne, ou sans personne à portée, ne fait rien (GDD §5.1) : le
+    /// rendu ne lui joue donc aucune attaque.
+    /// </summary>
+    public long? LastActionTick { get; set; }
 
     [JsonIgnore]
     public bool IsAlive => Health > 0;
@@ -61,6 +77,12 @@ public sealed class HeroEntity : Entity
     public override EntityKind Kind => EntityKind.Hero;
 
     public HeroClass Class { get; set; }
+
+    /// <summary>
+    /// Ligne où le joueur a placé le personnage (GDD §3.1). Les avancées d'un combat ne la changent
+    /// pas : l'équipe relevée après une défaite y reprend sa place.
+    /// </summary>
+    public int FormationLine { get; set; } = 1;
 
     /// <summary>Niveau dans la classe, de 1 au niveau maximum (GDD §5.4).</summary>
     public int Level { get; set; } = 1;

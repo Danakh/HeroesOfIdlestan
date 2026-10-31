@@ -80,6 +80,82 @@ public class FormationTests
     }
 }
 
+/// <summary>Mort d'un personnage : resserrement, avancée et cascade (GDD §3.2).</summary>
+public class FormationDeathTests
+{
+    /// <summary>Une pyramide, ligne par ligne ; chacun préfère sa ligne de départ.</summary>
+    private static List<Entity> Pyramid(params int[] counts) =>
+        counts.SelectMany((count, line) => Enumerable.Range(0, count)
+                .Select(_ => (Entity)new HeroEntity { Health = 1, Line = line + 1, PreferredLine = line + 1 }))
+            .ToList();
+
+    private static int[] Shape(List<Entity> side)
+    {
+        var lines = side.Where(f => f.IsAlive).Select(f => f.Line).ToList();
+        return Enumerable.Range(1, lines.DefaultIfEmpty(0).Max()).Select(l => lines.Count(x => x == l)).ToArray();
+    }
+
+    private static void Kill(List<Entity> side, Entity fallen)
+    {
+        int hole = Formation.HoleOf(side, fallen);
+        fallen.Health = 0;
+        Formation.Settle(side, fallen.Line, hole);
+    }
+
+    [Fact]
+    public void ValidAfterTightening_NobodyAdvances()
+    {
+        var team = Pyramid(4, 2, 1);
+        Kill(team, team[0]);
+        Assert.Equal([3, 2, 1], Shape(team));
+    }
+
+    /// <summary>L'exemple du GDD : 3-2-1 → 2-2-1 → 3-1-1 → 3-2.</summary>
+    [Fact]
+    public void Cascade_RunsLineByLine()
+    {
+        var team = Pyramid(3, 2, 1);
+        Kill(team, team[1]);
+        Assert.Equal([3, 2], Shape(team));
+    }
+
+    [Fact]
+    public void TheAdvancer_FillsTheHole_FromBehindIt()
+    {
+        var team = Pyramid(3, 2);       // A B C / D E
+        var (a, d, e) = (team[0], team[3], team[4]);
+        Kill(team, a);                  // trou en haut : seul D est derrière
+        Assert.Equal(1, d.Line);
+        Assert.Equal(2, e.Line);
+        Assert.Same(d, Formation.LineOf(team, 1)[0]);
+    }
+
+    [Fact]
+    public void BetweenTwo_AffinityWins_ThenTopToBottom()
+    {
+        var team = Pyramid(3, 2);       // A B C / D E, trou au centre : D et E derrière
+        var (d, e) = (team[3], team[4]);
+        Kill(team, team[1]);
+        Assert.Equal(1, d.Line);        // égalité : le plus haut
+        Assert.Same(d, Formation.LineOf(team, 1)[1]);
+
+        team = Pyramid(3, 2);
+        (d, e) = (team[3], team[4]);
+        e.PreferredLine = 1;
+        Kill(team, team[1]);
+        Assert.Equal(1, e.Line);        // affinité
+        Assert.Equal(2, d.Line);
+    }
+
+    [Fact]
+    public void AnInvalidFormation_IsSettledWithoutAHole()
+    {
+        var team = Pyramid(2, 2, 1);
+        Formation.Settle(team);
+        Assert.Equal([3, 2], Shape(team));
+    }
+}
+
 /// <summary>La boucle courte : combat, repos, zone suivante ; défaite et recul (GDD §2).</summary>
 public class CombatLoopTests
 {
@@ -161,6 +237,76 @@ public class CombatLoopTests
         PlayUntil(c, s => s.Run.LastOutcome == FightOutcome.Defeat);
         c.SimulateTicks(GameContent.RestTicks);
         Assert.Equal(1, c.State.Run.Zone);
+    }
+
+    [Fact]
+    public void BackLines_DoNothing_UntilTheyAdvance()
+    {
+        var c = new GameController();
+        c.NewDebugGame(seed: 1);
+        c.SimulateTicks(5 * GameClock.TicksPerSecond);
+
+        Assert.All(c.State.Heroes.Where(h => h.Line == 1), h => Assert.NotNull(h.LastActionTick));
+        Assert.All(c.State.Heroes.Where(h => h.Line > 1), h => Assert.Null(h.LastActionTick));
+    }
+
+    [Fact]
+    public void Deaths_KeepBothSidesInAPyramid()
+    {
+        var c = new GameController();
+        c.NewDebugGame(seed: 1);
+        for (int i = 0; i < 4 * 90; i++)
+        {
+            c.SimulateTicks(GameClock.TicksPerSecond / 4);
+            if (c.State.Run.Phase != RunPhase.Fighting) continue;
+            AssertPyramid(c.State.Heroes);
+            AssertPyramid(c.State.Monsters);
+        }
+        Assert.Contains(c.State.Heroes, h => h.Line < h.FormationLine);
+    }
+
+    [Fact]
+    public void AnAdvancer_WalksBeforeActing()
+    {
+        var c = new GameController();
+        c.NewDebugGame(seed: 1);
+        var lines = c.State.Heroes.ToDictionary(h => h, h => h.Line);
+        var arrivals = new Dictionary<HeroEntity, long>();
+        for (int i = 0; i < 90 * GameClock.TicksPerSecond && arrivals.Count < 3; i++)
+        {
+            c.SimulateTicks(1);
+            foreach (var hero in c.State.Heroes)
+            {
+                if (hero.Line == lines[hero]) continue;
+                lines[hero] = hero.Line;
+                arrivals[hero] = c.State.Clock.CurrentTick + GameContent.MoveTicks;
+            }
+            foreach (var (hero, arrival) in arrivals)
+                if (c.State.Clock.CurrentTick < arrival && hero.LastActionTick is { } last)
+                    Assert.True(last < arrival - GameContent.MoveTicks, "Il a frappé en marchant.");
+        }
+        Assert.NotEmpty(arrivals);
+    }
+
+    [Fact]
+    public void Defeat_RestoresThePlayersFormation()
+    {
+        var c = new GameController();
+        c.NewDebugGame(seed: 1);
+        PlayUntil(c, s => s.Run.LastOutcome == FightOutcome.Defeat);
+        c.SimulateTicks(GameContent.RestTicks);
+
+        Assert.All(c.State.Heroes, h => Assert.Equal(h.FormationLine, h.Line));
+        Assert.All(c.State.Heroes, h => Assert.True(h.IsAlive));
+    }
+
+    private static void AssertPyramid(IEnumerable<Entity> side)
+    {
+        var lines = side.Where(f => f.IsAlive).Select(f => f.Line).ToList();
+        if (lines.Count == 0) return;
+        var counts = Enumerable.Range(1, lines.Max()).Select(l => lines.Count(x => x == l)).ToList();
+        for (int i = 1; i < counts.Count; i++)
+            Assert.True(counts[i - 1] > counts[i], $"Pyramide invalide : {string.Join("-", counts)}");
     }
 
     [Fact]

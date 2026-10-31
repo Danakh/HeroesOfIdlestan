@@ -58,7 +58,7 @@ l'éditeur), le modèle 3D est introuvable et les combattants s'affichent en cap
 | `GameRuntimeHost` | UI.Godot | Dérive du `GameHost` commun (verrou, `Read` / `Invoke`) ; ajoute `Render(delta)` et l'input Godot |
 | `GameRuntime` | Render.Godot | La `GameSession` commune + la scène ; `Render(delta)` met la scène à jour |
 | `BattleScene` | Render.Godot | Décor, lumière, caméra, une `FighterView` par combattant ; lit l'état, ne le modifie jamais |
-| `FighterView` | Render.Godot | Modèle animé, barre de vie, fente à chaque action, chute à la mort |
+| `FighterView` | Render.Godot | Modèle animé, barre de vie, fente à chaque action, marche vers sa place (`FighterWalk`, dans Presentation), chute à la mort |
 | `CameraRig` | Render.Godot | Orbite (glisser), zoom (molette, pincement), déplacement (bouton du milieu) |
 | `GodotAudioService` | Render.Godot | Un `AudioStreamPlayer` polyphone par son ; WAV décodés par Godot |
 
@@ -116,7 +116,8 @@ taille réelle et teinte bleue pour l'équipe, réduit et teinté de rouge pour 
 | Situation | Animation |
 |---|---|
 | Arrivée de l'équipe (nouvelle partie, chargement) | `Intro`, jouée jusqu'au bout |
-| Combat | `Idle`, plus une fente vers l'adversaire à chaque action |
+| Combat | `Idle`, plus une fente vers l'adversaire à chaque action réellement faite (qui ne peut pas attaquer depuis sa ligne reste en `Idle`) |
+| Changement de place dans la formation (avancée, resserrement, retour en place après une défaite) | `Walk` pendant 1 s (`GameContent.MoveTicks`), tourné dans le sens de la marche ; côté Skia, un dandinement |
 | Repos après une victoire, avance automatique | `Walk` |
 | Repos après une victoire, sans avance | `Look around` |
 | Mort | pose figée, chute à la renverse ; un monstre disparaît 1,2 s plus tard |
