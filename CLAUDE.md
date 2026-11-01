@@ -17,7 +17,7 @@ Détail et exemples : [`design/02-architecture.md`](design/02-architecture.md#no
 - Tout ce qui lance le jeu : `HeroesOfIdlestan.App.<Plateforme>` (`App.Desktop`, `App.Browser`, `App.Android`,
   `App.Godot`).
 - Tout ce qui teste : `HeroesOfIdlestan.Test.<Nom>` (`Test.Tests`).
-- Outils de développement, qui ne lancent pas le jeu : `HeroesOfIdlestan.Tool.<Nom>` (`Tool.Animation`).
+- Outils de développement, qui ne lancent pas le jeu : `HeroesOfIdlestan.Tool.<Nom>` (`Tool.Animation`, `Tool.SpriteSheet`).
 - Le cœur, une couche par projet, exactement cinq : `HeroesOfIdlestan.Core.Model`, `.Core.Controller`,
   `.Core.Presentation`, `.Core.Render`, `.Core.UI`. Model ne dépend de rien ; Controller de Model ;
   Presentation de Controller (et d'aucun moteur) ; Render de Presentation ; UI de Render.
@@ -33,6 +33,7 @@ Détail et exemples : [`design/02-architecture.md`](design/02-architecture.md#no
 dotnet build HeroesOfIdlestan.slnx
 dotnet run --project HeroesOfIdlestan.App.Desktop
 dotnet run --project HeroesOfIdlestan.Tool.Animation   # banc d'essai des animations (design/07)
+dotnet run --project HeroesOfIdlestan.Tool.SpriteSheet -- <modèle.glb>  # sprites 2D d'un modèle 3D (design/09)
 dotnet test HeroesOfIdlestan.Test.Tests
 dotnet run --project HeroesOfIdlestan.App.Godot        # version Godot 3D, Godot 4.7 .NET (design/08)
 ```

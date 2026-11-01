@@ -59,7 +59,7 @@ Le nom d'un projet dit son rôle ; le préfixe est le nom du jeu.
 | Cœur du jeu, une couche par projet | `<Jeu>.Core.<Couche>` | `HeroesOfIdlestan.Core.Model`, `.Core.Controller`, `.Core.Presentation`, `.Core.Render`, `.Core.UI` |
 | Variante d'une couche pour un autre moteur | `<Jeu>.Core.<Couche>.<Moteur>` | `HeroesOfIdlestan.Core.Render.Godot`, `.Core.UI.Godot` |
 | Teste | `<Jeu>.Test.<Nom>` | `HeroesOfIdlestan.Test.Tests` |
-| Outil de développement (ne lance pas le jeu) | `<Jeu>.Tool.<Nom>` | `HeroesOfIdlestan.Tool.Animation` |
+| Outil de développement (ne lance pas le jeu) | `<Jeu>.Tool.<Nom>` | `HeroesOfIdlestan.Tool.Animation`, `.Tool.SpriteSheet` |
 
 - Le dossier, le `.csproj` et l'assembly portent le nom du projet ; l'espace de noms racine aussi
   (`RootNamespace`), et un sous-dossier ajoute un segment (`HeroesOfIdlestan.Core.Model/State/` →

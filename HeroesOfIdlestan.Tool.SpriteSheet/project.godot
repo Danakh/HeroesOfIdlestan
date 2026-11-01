@@ -1,0 +1,19 @@
+; Projet Godot de l'outil HeroesOfIdlestan.Tool.SpriteSheet. Voir design/09-sprite-sheets.md.
+
+config_version=5
+
+[application]
+
+config/name="HeroesOfIdlestan SpriteSheet"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=480
+window/vsync/vsync_mode=0
+
+[dotnet]
+
+project/assembly_name="HeroesOfIdlestan.Tool.SpriteSheet"

@@ -10,5 +10,6 @@
   <Project Path="HeroesOfIdlestan.App.Browser/HeroesOfIdlestan.App.Browser.csproj" />
   <Project Path="HeroesOfIdlestan.App.Godot/HeroesOfIdlestan.App.Godot.csproj" />
   <Project Path="HeroesOfIdlestan.Tool.Animation/HeroesOfIdlestan.Tool.Animation.csproj" />
+  <Project Path="HeroesOfIdlestan.Tool.SpriteSheet/HeroesOfIdlestan.Tool.SpriteSheet.csproj" />
   <Project Path="HeroesOfIdlestan.Test.Tests/HeroesOfIdlestan.Test.Tests.csproj" />
 </Solution>

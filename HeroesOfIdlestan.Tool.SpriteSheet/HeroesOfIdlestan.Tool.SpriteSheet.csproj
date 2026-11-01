@@ -1,0 +1,24 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+  <!--
+    Outil : filme un modèle 3D animé (glTF, FBX) en orthographique et écrit une planche de sprites
+    2D par animation, plus un manifeste JSON. Projet Godot autonome : il ne référence pas le Core.
+    Voir design/09-sprite-sheets.md.
+  -->
+  <PropertyGroup>
+    <RootNamespace>HeroesOfIdlestan.Tool.SpriteSheet</RootNamespace>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <!-- Explicite, comme pour App.Godot : sinon l'éditeur Godot ajoute un net8.0. -->
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!--
+      `dotnet run` lance Godot sur ce projet après le build. Le double tiret final de RunArguments
+      fait passer à l'outil, plutôt qu'à Godot, les arguments donnés après celui de `dotnet run`.
+      Pas de RunWorkingDirectory : les chemins relatifs se lisent depuis le dossier de l'appelant.
+    -->
+    <GodotExecutable Condition="'$(GodotExecutable)' == '' And '$(GODOT)' != ''">$(GODOT)</GodotExecutable>
+    <GodotExecutable Condition="'$(GodotExecutable)' == ''">C:\DEV\Godot_v4.7.2\Godot_v4.7.2-stable_mono_win64_console.exe</GodotExecutable>
+    <RunCommand>$(GodotExecutable)</RunCommand>
+    <RunArguments>--path "$(MSBuildProjectDirectory)" --</RunArguments>
+  </PropertyGroup>
+</Project>

@@ -20,16 +20,18 @@ Il est extrait de l'architecture de SettlersOfIdlestan.
 | [06 — Déploiement web](06-deploiement-web.md) | Publier la version web sur GitHub Pages |
 | [07 — Animation](07-animation.md) | Squelettes, habillages SVG, format des animations, outil de test |
 | [08 — Version Godot](08-godot.md) | La pile de rendu 3D sous Godot, à côté de Skia + Avalonia |
+| [09 — Planches de sprites](09-sprite-sheets.md) | Tirer des sprites 2D d'un modèle 3D animé |
 | [Game design](Gamedesign.md) | Les règles du jeu : formation, combat, classes, progression |
 
 ## Commandes
 
 ```bash
-dotnet build HeroesOfIdlestan.slnx                          # Core.*, App.Desktop, App.Browser, App.Godot, Tool.Animation, Test.Tests
+dotnet build HeroesOfIdlestan.slnx                          # Core.*, App.Desktop, App.Browser, App.Godot, Tool.*, Test.Tests
 dotnet run --project HeroesOfIdlestan.App.Desktop
 dotnet run --project HeroesOfIdlestan.App.Browser           # sert la page et ouvre le navigateur
 dotnet publish HeroesOfIdlestan.App.Android -c Release      # APK (hors .slnx, workload android requis)
 dotnet run --project HeroesOfIdlestan.Tool.Animation        # banc d'essai des animations
+dotnet run --project HeroesOfIdlestan.Tool.SpriteSheet -- <modèle.glb>  # planches de sprites (voir 09)
 dotnet run --project HeroesOfIdlestan.App.Godot            # version Godot 3D (Godot 4.7 .NET, voir 08)
 dotnet test HeroesOfIdlestan.Test.Tests
 python assets/sounds/generate_sounds.py                     # régénère les WAV
@@ -59,9 +61,11 @@ HeroesOfIdlestan.App.Browser/       head WebAssembly (+ wwwroot/)
 HeroesOfIdlestan.App.Android/       head Android (hors .slnx)
 HeroesOfIdlestan.App.Godot/         head Godot 3D : project.godot, Main.cs, ui/ (scènes d'UI), assets/characters/
 HeroesOfIdlestan.Tool.Animation/    banc d'essai des animations (Avalonia, bureau)
+HeroesOfIdlestan.Tool.SpriteSheet/  planches de sprites 2D tirées d'un modèle 3D animé (projet Godot, voir 09)
 HeroesOfIdlestan.Test.Tests/        tests xUnit + Saves/ (fixtures)
 assets/sounds/                      générateur des bruitages
 assets/animation/                   squelettes, habillages SVG et animations (voir 07)
+assets/sprites/                     sortie par défaut de Tool.SpriteSheet (voir 09)
 tools/New-Game.ps1                  crée un nouveau jeu à partir du squelette
 .github/workflows/                  déploiement web, build APK
 design/                             cette documentation
