@@ -85,7 +85,7 @@ public class InvariantTests
             var name = Path.GetFileNameWithoutExtension(project);
             var forbidden = godot.Contains(name) ? skia : godot;
             var references = XDocument.Load(project).Descendants("ProjectReference")
-                .Select(r => Path.GetFileNameWithoutExtension((string?)r.Attribute("Include") ?? ""));
+                .Select(r => ReferencedProject((string?)r.Attribute("Include")));
             offenders.AddRange(references.Where(forbidden.Contains).Select(r => $"{name} → {r}"));
         }
 
@@ -105,7 +105,7 @@ public class InvariantTests
         var xml = XDocument.Load(project);
 
         var references = xml.Descendants("ProjectReference")
-            .Select(r => Path.GetFileNameWithoutExtension((string?)r.Attribute("Include") ?? ""))
+            .Select(r => ReferencedProject((string?)r.Attribute("Include")))
             .ToList();
         Assert.Equal(["HeroesOfIdlestan.Core.Controller"], references);
 
@@ -116,6 +116,14 @@ public class InvariantTests
             .ToList();
         Assert.True(packages.Count == 0, "Paquets de moteur dans Core.Presentation : " + string.Join(", ", packages));
     }
+
+    /// <summary>
+    /// Nom du projet visé par un <c>ProjectReference</c>. Les csproj écrivent leurs chemins avec des
+    /// « \ », qui ne sont pas des séparateurs sous Linux (la CI) : sans les convertir,
+    /// <c>..\X\X.csproj</c> y donnerait « ..\X\X » au lieu de « X ».
+    /// </summary>
+    private static string ReferencedProject(string? include) =>
+        Path.GetFileNameWithoutExtension((include ?? "").Replace('\\', '/'));
 
     private static DirectoryInfo RepositoryRoot()
     {
