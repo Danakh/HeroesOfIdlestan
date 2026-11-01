@@ -19,22 +19,27 @@ publie le head Browser et met en ligne le bundle sur GitHub Pages, à l'adresse
 3. **Dépôt privé** : GitHub Pages exige un plan payant pour un dépôt privé. Sinon, rendre le dépôt
    public, ou déployer ailleurs (voir « Autres hébergeurs »).
 
-4. **Autoriser les tags** : l'environnement `github-pages` n'accepte par défaut que les déploiements
-   depuis la branche par défaut. Pour publier par tag, dans *Settings > Environments > github-pages >
-   Deployment branches and tags*, ajouter une règle de tag `v*`. Sans elle, le déploiement par tag
-   est refusé (le lancement manuel depuis `master` marche toujours).
+4. **Branche autorisée** : l'environnement `github-pages` n'accepte par défaut que les déploiements
+   depuis la branche par défaut (`master`), ce qui suffit tant qu'on publie à chaque push. Pour
+   publier par tag, voir plus bas.
 
 ## Publier
 
-Deux déclencheurs :
+Deux déclencheurs, le temps du prototype :
 
+- **À chaque push sur `master`** : chaque commit poussé est mis en ligne. Deux pushes rapprochés
+  font deux déploiements à la suite (`concurrency` n'en coupe aucun).
 - **Manuel** : onglet *Actions > Deploy web to GitHub Pages > Run workflow*.
-- **Par tag de version** :
 
-  ```powershell
-  git tag v0.1.0
-  git push origin v0.1.0
-  ```
+**Plus tard, publier seulement les versions** : dans `deploy-web.yml`, remplacer
+`branches: [ master ]` par `tags: [ 'v*' ]`, puis dans *Settings > Environments > github-pages >
+Deployment branches and tags*, ajouter une règle de **tag** `v*` (sans elle, le déploiement par tag
+est refusé). On publie alors par :
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 Le lien de la page s'affiche dans le résumé du run (étape *Deploy*). Compter 5 à 10 minutes : la
 publication WebAssembly est longue.

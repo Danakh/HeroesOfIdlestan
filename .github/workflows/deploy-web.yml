@@ -5,9 +5,10 @@ name: Deploy web to GitHub Pages
 on:
   # Lancement manuel depuis l'onglet Actions.
   workflow_dispatch:
-  # Et à chaque tag de version (git tag v0.1.0 && git push origin v0.1.0).
+  # Et à chaque push sur master, tant que le jeu est un prototype. Pour publier seulement les
+  # versions, remplacer par : tags: [ 'v*' ] (voir design/06-deploiement-web.md).
   push:
-    tags: [ 'v*' ]
+    branches: [ master ]
 
 permissions:
   contents: read
