@@ -204,7 +204,9 @@ public class AnimationTests
         foreach (var a in animations)
             AnimationCodec.ValidateAnimation(a, skeletons[a.Skeleton]);
 
-        Assert.Equal(["attack", "walk"], animations.Select(a => a.Id).Order());
+        Assert.Equal(
+            ["attack", "attack_bow", "attack_magic", "attack_melee", "death", "hurt", "idle", "walk"],
+            animations.Select(a => a.Id).Order(StringComparer.Ordinal));
     }
 
     [Fact]

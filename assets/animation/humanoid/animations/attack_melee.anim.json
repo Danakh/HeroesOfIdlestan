@@ -1,9 +1,9 @@
 {
   "format": "hoi-animation",
   "version": 1,
-  "id": "attack",
+  "id": "attack_melee",
   "skeleton": "humanoid",
-  // Coup d'épée de haut en bas avec fente : armé (0 → 0,3 s), frappe (→ 0,42 s), tenue, retour.
+  // Variante corps à corps, coup d'épée de haut en bas avec fente : armé (0 → 0,3 s), frappe (→ 0,42 s), tenue, retour.
   // L'événement « hit » marque l'instant où le jeu applique les dégâts.
   "duration": 0.9,
   "loop": false,

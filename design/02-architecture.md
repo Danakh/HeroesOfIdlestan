@@ -97,6 +97,14 @@ modified » dans un renderer, au mieux).
 une vue incohérente si un tick s'intercalait. Un record se compare structurellement : la vue ne se
 rafraîchit que si quelque chose a changé.
 
+**Le journal (`GameLog`).** Canal de diagnostic statique (Core.Model), hors partie et jamais
+sérialisé : erreurs attrapées (systèmes, audio, sauvegarde) et avertissements (contenu manquant
+remplacé, comme une animation absente). Un message répété fait monter un compteur au lieu d'être
+dupliqué. Le bouton « Log » du HUD, sur les deux piles, l'affiche du plus récent au plus ancien, et
+clignote quand un nouveau message n'a pas encore été vu (`HudViewModel.LogUnread`,
+`LogHighlighted`). Le HUD lit `GameLog.Version` directement, sans passer par un snapshot : le journal
+est déjà thread-safe et reste lisible sans partie en cours.
+
 ## Simulation
 
 - **Horloge** (`GameClock`) : 1 tick = 10 ms. Le jeu n'avance qu'en ticks, jamais en temps réel. Le

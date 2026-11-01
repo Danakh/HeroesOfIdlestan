@@ -1,0 +1,141 @@
+{
+  "format": "hoi-animation",
+  "version": 1,
+  "id": "attack_magic",
+  "skeleton": "humanoid",
+  // Sort : les deux bras se lèvent en concentrant (→ 0,35 s), puis projettent le sort vers
+  // l'avant à « hit » (0,55 s), tenue, retour.
+  "duration": 1,
+  "loop": false,
+  "bones": {
+    "pelvis": {
+      "translate": [
+        { "time": 0, "x": 0, "y": 0, "curve": "Smooth" },
+        { "time": 0.35, "x": -3, "y": 0, "curve": "Smooth" },
+        { "time": 0.55, "x": 5, "y": 2, "curve": "Smooth" },
+        { "time": 0.75, "x": 5, "y": 2, "curve": "Smooth" },
+        { "time": 1, "x": 0, "y": 0 }
+      ]
+    },
+    "torso": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": -10, "curve": "Smooth" },
+        { "time": 0.55, "angle": 8, "curve": "Smooth" },
+        { "time": 0.75, "angle": 8, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "head": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": -8, "curve": "Smooth" },
+        { "time": 0.55, "angle": 5, "curve": "Smooth" },
+        { "time": 0.75, "angle": 5, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "upperarm_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": -170, "curve": "Smooth" },
+        { "time": 0.55, "angle": -90, "curve": "Smooth" },
+        { "time": 0.75, "angle": -90, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "forearm_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 60, "curve": "Smooth" },
+        { "time": 0.55, "angle": 70, "curve": "Smooth" },
+        { "time": 0.75, "angle": 70, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "weapon": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 10, "curve": "Smooth" },
+        { "time": 0.55, "angle": 20, "curve": "Smooth" },
+        { "time": 0.75, "angle": 20, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "upperarm_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": -120, "curve": "Smooth" },
+        { "time": 0.55, "angle": -80, "curve": "Smooth" },
+        { "time": 0.75, "angle": -80, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "forearm_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 20, "curve": "Smooth" },
+        { "time": 0.55, "angle": 20, "curve": "Smooth" },
+        { "time": 0.75, "angle": 20, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "thigh_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 0, "curve": "Smooth" },
+        { "time": 0.55, "angle": -20, "curve": "Smooth" },
+        { "time": 0.75, "angle": -20, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "shin_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 0, "curve": "Smooth" },
+        { "time": 0.55, "angle": 15, "curve": "Smooth" },
+        { "time": 0.75, "angle": 15, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "foot_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 0, "curve": "Smooth" },
+        { "time": 0.55, "angle": 5, "curve": "Smooth" },
+        { "time": 0.75, "angle": 5, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "thigh_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 0, "curve": "Smooth" },
+        { "time": 0.55, "angle": 15, "curve": "Smooth" },
+        { "time": 0.75, "angle": 15, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "shin_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 0, "curve": "Smooth" },
+        { "time": 0.55, "angle": 5, "curve": "Smooth" },
+        { "time": 0.75, "angle": 5, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    },
+    "foot_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.35, "angle": 0, "curve": "Smooth" },
+        { "time": 0.55, "angle": -20, "curve": "Smooth" },
+        { "time": 0.75, "angle": -20, "curve": "Smooth" },
+        { "time": 1, "angle": 0 }
+      ]
+    }
+  },
+  "events": [
+    { "time": 0.55, "name": "hit" }
+  ]
+}

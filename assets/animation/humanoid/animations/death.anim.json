@@ -1,0 +1,100 @@
+{
+  "format": "hoi-animation",
+  "version": 1,
+  "id": "death",
+  "skeleton": "humanoid",
+  // Mort : le personnage chancelle (→ 0,15 s), plie les genoux et tombe à la renverse (→ 0,65 s),
+  // rebondit à peine, puis reste au sol : la dernière clé est tenue.
+  "duration": 1,
+  "loop": false,
+  "bones": {
+    "root": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": -10, "curve": "Smooth" },
+        { "time": 0.65, "angle": -90, "curve": "Smooth" },
+        { "time": 0.75, "angle": -86, "curve": "Smooth" },
+        { "time": 0.85, "angle": -90, "curve": "Smooth" },
+        { "time": 1, "angle": -90 }
+      ],
+      "translate": [
+        { "time": 0, "x": 0, "y": 0, "curve": "Smooth" },
+        { "time": 0.15, "x": -6, "y": 0, "curve": "Smooth" },
+        { "time": 0.65, "x": -20, "y": -15, "curve": "Smooth" },
+        { "time": 1, "x": -20, "y": -15 }
+      ]
+    },
+    "torso": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 10, "curve": "Smooth" },
+        { "time": 0.65, "angle": -5, "curve": "Smooth" },
+        { "time": 1, "angle": -5 }
+      ]
+    },
+    "head": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 15, "curve": "Smooth" },
+        { "time": 0.7, "angle": -15, "curve": "Smooth" },
+        { "time": 1, "angle": -4 }
+      ]
+    },
+    "upperarm_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.4, "angle": -40, "curve": "Smooth" },
+        { "time": 0.7, "angle": -80, "curve": "Smooth" },
+        { "time": 1, "angle": -80 }
+      ]
+    },
+    "upperarm_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.4, "angle": -30, "curve": "Smooth" },
+        { "time": 0.7, "angle": -70, "curve": "Smooth" },
+        { "time": 1, "angle": -70 }
+      ]
+    },
+    "weapon": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.4, "angle": 40, "curve": "Smooth" },
+        { "time": 0.7, "angle": 80, "curve": "Smooth" },
+        { "time": 1, "angle": 80 }
+      ]
+    },
+    "thigh_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.3, "angle": -25, "curve": "Smooth" },
+        { "time": 0.65, "angle": -10, "curve": "Smooth" },
+        { "time": 1, "angle": -10 }
+      ]
+    },
+    "shin_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.3, "angle": 40, "curve": "Smooth" },
+        { "time": 0.65, "angle": 15, "curve": "Smooth" },
+        { "time": 1, "angle": 15 }
+      ]
+    },
+    "thigh_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.3, "angle": -15, "curve": "Smooth" },
+        { "time": 0.65, "angle": -5, "curve": "Smooth" },
+        { "time": 1, "angle": -5 }
+      ]
+    },
+    "shin_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.3, "angle": 25, "curve": "Smooth" },
+        { "time": 0.65, "angle": 10, "curve": "Smooth" },
+        { "time": 1, "angle": 10 }
+      ]
+    }
+  }
+}

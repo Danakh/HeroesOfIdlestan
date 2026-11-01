@@ -49,7 +49,7 @@ propriété inconnue est refusée.
 assets/animation/humanoid/
   humanoid.skeleton.json
   skins/warrior/warrior.skin.json + parts/*.svg
-  animations/walk.anim.json, attack.anim.json
+  animations/idle, walk, attack, hurt, death, attack_melee, attack_bow, attack_magic (.anim.json)
 ```
 
 **Squelette** (`*.skeleton.json`, `"format": "hoi-skeleton"`) : une liste d'os, et chaque parent
@@ -82,6 +82,40 @@ est déclaré avant ses enfants. Pour chaque os : `name`, `parent`, `x`, `y`, `r
 Faire évoluer le format : incrémenter `AnimationCodec.CurrentVersion` et migrer l'ancien JSON dans
 `Decode`, sans jamais retirer la lecture d'une version existante. `AnimationTests` vérifie que
 tous les fichiers livrés se lisent.
+
+## Catalogue et secours
+
+Le jeu demande ses animations par nom, avec les mêmes noms sur les deux piles : id d'un
+`*.anim.json` côté Skia, nom de clip glTF côté Godot (comparé sans tenir compte de la casse, donc
+`Idle` convient pour `idle`). Les noms et leurs secours sont dans `Core.Presentation/Animation/
+AnimationCatalog.cs`.
+
+| Animation | Boucle | Événement | Usage | Secours |
+|---|---|---|---|---|
+| `idle` | oui | — | En garde, et quand le personnage n'a rien à faire depuis sa ligne | — |
+| `walk` | oui | `step` | Changement de place, zone suivante | `idle` |
+| `attack` | non | `hit` | Attaque de base, valable pour toute arme ; celle des monstres | `idle` |
+| `hurt` | non | — | Coup reçu | `idle` |
+| `death` | non | — | Chute, dernière image tenue | `idle` |
+| `attack_melee` | non | `hit` | Corps à corps (guerrier) | `attack` |
+| `attack_bow` | non | `hit` (au lâcher) | Arc | `attack` |
+| `attack_magic` | non | `hit` | Sort | `attack` |
+
+Les cinq premières sont la base que tout squelette devrait avoir. Les variantes d'attaque se
+choisissent selon le combattant (`AnimationCatalog.AttackFor`).
+
+**Secours.** Un `AnimationResolver` par modèle trouve l'animation à jouer : celle demandée si le
+modèle l'a, sinon la suivante de sa chaîne (`attack_bow` → `attack` → `idle`). Chaque
+remplacement est consigné une fois dans `GameLog` en avertissement, que le bouton « Log » du HUD
+affiche : un modèle incomplet reste jouable, et ce qui manque se voit. Une animation rabattue sur
+`idle` n'est pas jouée en plus : le personnage garde son animation de fond.
+
+Côté Godot, `FighterView` passe par ce résolveur. Le robot de test n'a ni attaque, ni coup reçu, ni
+mort : le journal le signale. Sans clip `death`, la pose se fige et le corps tombe à la renverse.
+Côté Skia, le jeu dessine encore les combattants en ronds et ne joue pas d'animation squelettale :
+le catalogue servira quand les habillages y seront branchés.
+
+`AnimationCatalogTests` vérifie que `humanoid` a tout le catalogue.
 
 ## SVG : consigne pour Claude Design
 

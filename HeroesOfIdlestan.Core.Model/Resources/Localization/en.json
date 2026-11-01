@@ -19,5 +19,9 @@
   "event_hero_level_up": "Reached level {0}",
   "ui_continue": "Continue",
   "ui_debug_game": "Debug game",
-  "ui_menu": "Menu"
+  "ui_menu": "Menu",
+  "ui_log": "Log ({0})",
+  "ui_log_warning": "Warning",
+  "ui_log_error": "Error",
+  "ui_log_empty": "Log is empty."
 }

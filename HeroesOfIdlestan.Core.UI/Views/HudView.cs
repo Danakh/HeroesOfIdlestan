@@ -7,9 +7,14 @@ using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Views;
 
-/// <summary>Barre du haut, construite en code (pas de XAML) et liée à <see cref="HudViewModel"/>.</summary>
+/// <summary>
+/// Barre du haut, construite en code (pas de XAML) et liée à <see cref="HudViewModel"/>. Le bouton
+/// « Log » clignote tant qu'un message du journal n'a pas été vu, et déplie le journal sous la barre.
+/// </summary>
 public sealed class HudView : Border
 {
+    private static readonly IBrush LogHighlight = new SolidColorBrush(Color.FromRgb(0xD9, 0x8C, 0x1F));
+
     public HudView(HudViewModel viewModel)
     {
         DataContext = viewModel;
@@ -58,11 +63,39 @@ public sealed class HudView : Border
         menu.Bind(ContentControl.ContentProperty, new Binding(nameof(HudViewModel.MenuLabel)));
         menu.Click += (_, _) => viewModel.ReturnToMenu();
 
+        var log = new Button();
+        log.Bind(ContentControl.ContentProperty, new Binding(nameof(HudViewModel.LogLabel)));
+        log.Click += (_, _) => viewModel.ToggleLog();
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(HudViewModel.LogHighlighted)) return;
+            if (viewModel.LogHighlighted) log.Background = LogHighlight;
+            else log.ClearValue(BackgroundProperty);
+        };
+
+        var logText = new SelectableTextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
+        logText.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.LogText)));
+        var logPanel = new Border
+        {
+            Margin = new Thickness(0, 6, 0, 0),
+            Padding = new Thickness(8),
+            Background = new SolidColorBrush(Color.FromArgb(0xE0, 0x08, 0x0A, 0x0D)),
+            Child = new ScrollViewer { MaxHeight = 240, Content = logText },
+        };
+        logPanel.Bind(IsVisibleProperty, new Binding(nameof(HudViewModel.LogOpen)));
+
         Child = new StackPanel
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 16,
-            Children = { gold, zone, hero, autoAdvance, pause, speeds, bank, save, sound, menu },
+            Children =
+            {
+                new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 16,
+                    Children = { gold, zone, hero, autoAdvance, pause, speeds, bank, save, sound, log, menu },
+                },
+                logPanel,
+            },
         };
     }
 }

@@ -2,6 +2,7 @@ using Godot;
 using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Model.State;
+using HeroesOfIdlestan.Core.Presentation.Animation;
 using HeroesOfIdlestan.Core.Presentation.Battle;
 
 namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
@@ -11,6 +12,11 @@ namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 /// chaque action, la marche quand sa place change (<see cref="FighterWalk"/> : animation de marche,
 /// tourné dans le sens de la marche), et la chute à sa mort.
 ///
+/// <para>Animations : celles du catalogue (<see cref="AnimationNames"/>) passent par un
+/// <see cref="AnimationResolver"/>, qui remplace une animation absente du glTF par son secours et le
+/// signale dans le journal. Attaque à chaque action, coup reçu quand la vie baisse, mort tenue sur sa
+/// dernière image. Sans clip de mort, la pose se fige et le corps tombe à la renverse.</para>
+///
 /// <para>Tout suit le temps de jeu, pas le temps réel : les animations ralentissent, accélèrent ou
 /// s'arrêtent avec la vitesse et la pause, comme la simulation.</para>
 ///
@@ -19,13 +25,13 @@ namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 /// </summary>
 internal sealed class FighterView
 {
-    /// <summary>Animations du modèle, nommées comme dans le glTF.</summary>
-    public const string Idle = "Idle";
-    public const string Walk = "Walk";
-    public const string Run = "Run";
+    /// <summary>
+    /// Animations propres au modèle de test, hors catalogue : jouées si elles existent, sans
+    /// secours ni avertissement.
+    /// </summary>
     public const string LookAround = "Look around";
     public const string Intro = "Intro";
-    private static readonly string[] Loops = [Idle, Walk, Run, LookAround];
+    private static readonly string[] Loops = [AnimationNames.Idle, AnimationNames.Walk, "Run", LookAround];
 
     /// <summary>Durée de la fente qui suit une action, en ticks de jeu.</summary>
     private const float LungeTicks = 20f;
@@ -51,6 +57,14 @@ internal sealed class FighterView
     private readonly Color _aliveTint;
     private readonly Node3D _pivot;
     private readonly AnimationPlayer? _animation;
+    /// <summary>Nom du clip glTF, retrouvé sans tenir compte de la casse (« Idle » pour idle).</summary>
+    private readonly Dictionary<string, string> _clips = new(StringComparer.OrdinalIgnoreCase);
+    private readonly AnimationResolver? _resolver;
+    /// <summary>Attaque ou coup reçu en cours : joué jusqu'au bout avant de revenir au fond.</summary>
+    private string? _oneShot;
+    private long? _lastActionSeen;
+    private long _lastHealth;
+    private bool _deathStarted;
     private readonly List<GeometryInstance3D> _meshes = [];
     private readonly Node3D _bar;
     private readonly MeshInstance3D _barFill;
@@ -92,12 +106,18 @@ internal sealed class FighterView
         Collect(body);
         SetTint(_aliveTint);
 
+        _lastActionSeen = fighter.LastActionTick;
+        _lastHealth = fighter.Health;
         _animation = FindAnimationPlayer(body);
         if (_animation != null)
         {
+            foreach (var clip in _animation.GetAnimationList()) _clips.TryAdd(clip, clip);
+            string owner = model != null ? System.IO.Path.GetFileNameWithoutExtension(model.ResourcePath) : "placeholder";
+            _resolver = new AnimationResolver(owner, _clips.ContainsKey);
             foreach (var name in Loops)
-                if (_animation.HasAnimation(name)) _animation.GetAnimation(name).LoopMode = Animation.LoopModeEnum.Linear;
-            Play(playIntro ? Intro : Idle);
+                if (_clips.TryGetValue(name, out var clip)) _animation.GetAnimation(clip).LoopMode = Animation.LoopModeEnum.Linear;
+            if (playIntro && _clips.ContainsKey(Intro)) Play(Intro);
+            else if (Resolve(AnimationNames.Idle) is { } idle) Play(idle);
         }
 
         (_bar, _barFill) = BuildHealthBar();
@@ -142,9 +162,13 @@ internal sealed class FighterView
         {
             _wasAlive = fighter.IsAlive;
             SetTint(fighter.IsAlive ? _aliveTint : DeadTint);
+            // Relevé (retour en place après une défaite) : sa prochaine mort se rejouera.
+            if (fighter.IsAlive) _deathStarted = false;
         }
-        UpdateFall(fighter.IsAlive, speed, delta);
-        UpdateAnimation(fighter.IsAlive ? walking ? Walk : ChooseAnimation(state.Run) : null, speed);
+        if (fighter.IsAlive) DetectOneShots(fighter, walking);
+        UpdateFall(fighter.IsAlive || HasDeathClip, speed, delta);
+        if (fighter.IsAlive) UpdateAnimation(walking ? AnimationNames.Walk : ChooseAnimation(state.Run), speed);
+        else UpdateDeath(speed);
 
         _bar.Visible = fighter.IsAlive;
         if (fighter.IsAlive) UpdateHealthBar(Math.Clamp(fighter.Health / (float)stats.MaxHealth, 0f, 1f), camera);
@@ -160,8 +184,8 @@ internal sealed class FighterView
             _bar.Visible = false;
         }
         Root.Position = _home;
-        UpdateFall(alive: false, speed, delta);
-        UpdateAnimation(null, speed);
+        UpdateFall(alive: HasDeathClip, speed, delta);
+        UpdateDeath(speed);
         _corpseTime += delta * speed;
     }
 
@@ -172,29 +196,83 @@ internal sealed class FighterView
 
     // ── Animation ────────────────────────────────────────────────────────
 
+    /// <summary>L'animation de fond, hors attaque et coup reçu : un nom du catalogue, ou <see cref="LookAround"/>.</summary>
     private string ChooseAnimation(RunState run)
     {
-        if (!_isHero) return Idle;
-        if (run.Phase == RunPhase.Fighting) return Idle;
+        if (!_isHero) return AnimationNames.Idle;
+        if (run.Phase == RunPhase.Fighting) return AnimationNames.Idle;
         // Repos après une victoire : en route vers la zone suivante, ou on reste sur place.
-        if (run.LastOutcome == FightOutcome.Victory) return run.AutoAdvance ? Walk : LookAround;
-        return Idle;
+        if (run.LastOutcome == FightOutcome.Victory)
+            return run.AutoAdvance ? AnimationNames.Walk : _clips.ContainsKey(LookAround) ? LookAround : AnimationNames.Idle;
+        return AnimationNames.Idle;
     }
 
-    /// <param name="wanted">Animation voulue, ou null pour figer la pose (mort).</param>
-    private void UpdateAnimation(string? wanted, float speed)
+    /// <summary>Lance l'attaque à chaque nouvelle action, le coup reçu quand la vie baisse.</summary>
+    private void DetectOneShots(Entity fighter, bool walking)
+    {
+        long health = fighter.Health;
+        bool acted = fighter.LastActionTick is { } action && action != _lastActionSeen;
+        bool hurt = health < _lastHealth;
+        _lastActionSeen = fighter.LastActionTick;
+        _lastHealth = health;
+        if (walking || _animation == null) return;
+
+        // L'attaque l'emporte : un coup reçu n'interrompt pas un coup porté.
+        if (acted) StartOneShot(AnimationCatalog.AttackFor(fighter));
+        else if (hurt && _oneShot == null) StartOneShot(AnimationNames.Hurt);
+    }
+
+    private void StartOneShot(string name)
+    {
+        var clip = Resolve(name);
+        // Rabattue sur l'attente (ou sur rien), l'animation n'apporte rien : on garde le fond.
+        if (clip == null || clip == Resolve(AnimationNames.Idle)) return;
+        _oneShot = clip;
+        if (_animation!.CurrentAnimation == clip) _animation.Seek(0, update: true);
+        else _animation.Play(clip, BlendSeconds);
+    }
+
+    /// <param name="wanted">Nom du catalogue (résolu ici, avec secours) ou <see cref="LookAround"/>.</param>
+    private void UpdateAnimation(string wanted, float speed)
     {
         if (_animation == null) return;
-        _animation.SpeedScale = wanted == null ? 0 : speed;
-        if (wanted == null) return;
-        // L'intro se joue jusqu'au bout avant de céder la place.
-        if (_animation.CurrentAnimation == Intro && _animation.IsPlaying()) return;
-        if (_animation.CurrentAnimation != wanted) Play(wanted);
+        _animation.SpeedScale = speed;
+        // L'intro, puis une attaque ou un coup reçu, se jouent jusqu'au bout avant de céder la place.
+        if (_animation.IsPlaying() && _animation.CurrentAnimation == Intro) return;
+        if (_oneShot != null)
+        {
+            if (_animation.IsPlaying() && _animation.CurrentAnimation == _oneShot) return;
+            _oneShot = null;
+        }
+        var clip = wanted == LookAround ? LookAround : Resolve(wanted);
+        if (clip != null && _animation.CurrentAnimation != clip) Play(clip);
     }
 
-    private void Play(string name)
+    /// <summary>Joue la mort une fois et tient sa dernière image ; sans clip de mort, fige la pose.</summary>
+    private void UpdateDeath(float speed)
     {
-        if (_animation != null && _animation.HasAnimation(name)) _animation.Play(name, BlendSeconds);
+        if (_animation == null) return;
+        if (!_deathStarted)
+        {
+            _deathStarted = true;
+            _oneShot = null;
+            // Résolue même sans clip, pour que le remplacement figure au journal.
+            var clip = Resolve(AnimationNames.Death);
+            if (HasDeathClip && clip != null) _animation.Play(clip, BlendSeconds);
+        }
+        _animation.SpeedScale = HasDeathClip ? speed : 0;
+    }
+
+    /// <summary>Le modèle a sa propre mort : elle remplace la chute à la renverse.</summary>
+    private bool HasDeathClip => _resolver?.Has(AnimationNames.Death) == true;
+
+    /// <summary>Clip glTF de l'animation <paramref name="name"/> du catalogue, ou de son secours.</summary>
+    private string? Resolve(string name) =>
+        _resolver?.Resolve(name) is { } resolved && _clips.TryGetValue(resolved, out var clip) ? clip : null;
+
+    private void Play(string clip)
+    {
+        if (_animation != null && _animation.HasAnimation(clip)) _animation.Play(clip, BlendSeconds);
     }
 
     /// <summary>En marche, le corps se tourne vers où il va ; arrivé, il refait face à l'adversaire.</summary>

@@ -116,18 +116,21 @@ taille réelle et teinte bleue pour l'équipe, réduit et teinté de rouge pour 
 | Situation | Animation |
 |---|---|
 | Arrivée de l'équipe (nouvelle partie, chargement) | `Intro`, jouée jusqu'au bout |
-| Combat | `Idle`, plus une fente vers l'adversaire à chaque action réellement faite (qui ne peut pas attaquer depuis sa ligne reste en `Idle`) |
+| Combat | `Idle`, plus une fente vers l'adversaire à chaque action réellement faite (qui ne peut pas attaquer depuis sa ligne reste en `Idle`) ; l'attaque du catalogue (`attack_melee` pour le guerrier, `attack` pour un monstre) à chaque action, `hurt` quand la vie baisse |
 | Changement de place dans la formation (avancée, resserrement, retour en place après une défaite) | `Walk` pendant 1 s (`GameContent.MoveTicks`), tourné dans le sens de la marche ; côté Skia, un dandinement |
 | Repos après une victoire, avance automatique | `Walk` |
 | Repos après une victoire, sans avance | `Look around` |
-| Mort | pose figée, chute à la renverse ; un monstre disparaît 1,2 s plus tard |
+| Mort | `death`, dernière image tenue ; sans ce clip, pose figée et chute à la renverse ; un monstre disparaît 1,2 s plus tard |
 
 Tout suit le **temps de jeu** : la vitesse des animations vaut celle de l'horloge (x1, x3, x10) et
 tombe à 0 en pause, comme la fente et la chute.
 
 Le système d'animation 2D (squelettes JSON + SVG, voir 07) ne sert pas ici : en 3D, les animations
-viennent du glTF et de l'`AnimationPlayer` de Godot. Pour un nouveau modèle, garder les noms
-d'animation de `FighterView` ou y ajouter les siens.
+viennent du glTF et de l'`AnimationPlayer` de Godot. Leurs noms sont ceux du catalogue
+(`idle`, `walk`, `attack`, `hurt`, `death` et les variantes d'attaque, sans tenir compte de la casse,
+voir [07](07-animation.md#catalogue-et-secours)). Une animation absente est remplacée par son
+secours et signalée dans le journal (bouton « Log » du HUD) : le robot de test n'a ni `attack`, ni
+`hurt`, ni `death`. `Intro` et `Look around` sont propres au robot et jouées seulement s'il les a.
 
 ## Contraintes
 

@@ -1,0 +1,95 @@
+{
+  "format": "hoi-animation",
+  "version": 1,
+  "id": "idle",
+  "skeleton": "humanoid",
+  // En garde, respiration lente. Les genoux plient pour que les pieds restent au sol.
+  "duration": 2,
+  "loop": true,
+  "bones": {
+    "pelvis": {
+      "translate": [
+        { "time": 0, "x": 0, "y": 0, "curve": "Smooth" },
+        { "time": 1, "x": 0, "y": 1.4, "curve": "Smooth" },
+        { "time": 2, "x": 0, "y": 0 }
+      ]
+    },
+    "torso": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": 2, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "head": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": -2, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "upperarm_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": -4, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "upperarm_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": 4, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "weapon": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": 3, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "thigh_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": -10, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "shin_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": 20, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "foot_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": -10, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "thigh_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": -10, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "shin_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": 20, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    },
+    "foot_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 1, "angle": -10, "curve": "Smooth" },
+        { "time": 2, "angle": 0 }
+      ]
+    }
+  }
+}

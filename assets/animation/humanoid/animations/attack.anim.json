@@ -1,0 +1,132 @@
+{
+  "format": "hoi-animation",
+  "version": 1,
+  "id": "attack",
+  "skeleton": "humanoid",
+  // Attaque de base, valable pour toute arme : armé (→ 0,15 s), poussée vers l'avant (→ 0,3 s),
+  // tenue, retour. Secours des variantes attack_melee, attack_bow et attack_magic.
+  "duration": 0.6,
+  "loop": false,
+  "bones": {
+    "pelvis": {
+      "translate": [
+        { "time": 0, "x": 0, "y": 0, "curve": "Smooth" },
+        { "time": 0.15, "x": -4, "y": 1, "curve": "Smooth" },
+        { "time": 0.3, "x": 8, "y": 4, "curve": "Smooth" },
+        { "time": 0.4, "x": 8, "y": 4, "curve": "Smooth" },
+        { "time": 0.6, "x": 0, "y": 0 }
+      ]
+    },
+    "torso": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": -6, "curve": "Smooth" },
+        { "time": 0.3, "angle": 10, "curve": "Smooth" },
+        { "time": 0.4, "angle": 10, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "head": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 4, "curve": "Smooth" },
+        { "time": 0.3, "angle": -6, "curve": "Smooth" },
+        { "time": 0.4, "angle": -6, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "upperarm_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 20, "curve": "Smooth" },
+        { "time": 0.3, "angle": -80, "curve": "Smooth" },
+        { "time": 0.4, "angle": -80, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "forearm_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 30, "curve": "Smooth" },
+        { "time": 0.3, "angle": 60, "curve": "Smooth" },
+        { "time": 0.4, "angle": 60, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "weapon": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 40, "curve": "Smooth" },
+        { "time": 0.3, "angle": 100, "curve": "Smooth" },
+        { "time": 0.4, "angle": 100, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "upperarm_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": -20, "curve": "Smooth" },
+        { "time": 0.3, "angle": 30, "curve": "Smooth" },
+        { "time": 0.4, "angle": 30, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "thigh_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": -5, "curve": "Smooth" },
+        { "time": 0.3, "angle": -30, "curve": "Smooth" },
+        { "time": 0.4, "angle": -30, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "shin_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 5, "curve": "Smooth" },
+        { "time": 0.3, "angle": 25, "curve": "Smooth" },
+        { "time": 0.4, "angle": 25, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "foot_front": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 0, "curve": "Smooth" },
+        { "time": 0.3, "angle": 5, "curve": "Smooth" },
+        { "time": 0.4, "angle": 5, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "thigh_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 5, "curve": "Smooth" },
+        { "time": 0.3, "angle": 20, "curve": "Smooth" },
+        { "time": 0.4, "angle": 20, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "shin_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": 0, "curve": "Smooth" },
+        { "time": 0.3, "angle": 10, "curve": "Smooth" },
+        { "time": 0.4, "angle": 10, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    },
+    "foot_back": {
+      "rotate": [
+        { "time": 0, "angle": 0, "curve": "Smooth" },
+        { "time": 0.15, "angle": -5, "curve": "Smooth" },
+        { "time": 0.3, "angle": -30, "curve": "Smooth" },
+        { "time": 0.4, "angle": -30, "curve": "Smooth" },
+        { "time": 0.6, "angle": 0 }
+      ]
+    }
+  },
+  "events": [
+    { "time": 0.3, "name": "hit" }
+  ]
+}

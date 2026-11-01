@@ -1,3 +1,5 @@
+using System.Text;
+using HeroesOfIdlestan.Core.Model.Diagnostics;
 using HeroesOfIdlestan.Core.Presentation.Runtime;
 
 namespace HeroesOfIdlestan.Core.Presentation.ViewModels;
@@ -5,9 +7,25 @@ namespace HeroesOfIdlestan.Core.Presentation.ViewModels;
 /// <summary>
 /// Barre du haut, commune aux deux piles. Ne lit jamais la session elle-même : <see cref="Refresh"/>
 /// reçoit un instantané déjà pris sous verrou, et les commandes repassent par l'hôte.
+///
+/// <para>Le bouton « Log » ouvre le <see cref="GameLog"/>. Tant qu'un message arrivé depuis la
+/// dernière ouverture n'a pas été vu, <see cref="LogHighlighted"/> alterne (clignotement) au rythme
+/// des <see cref="Refresh"/>, que les deux piles appellent toutes les 100 ms.</para>
 /// </summary>
-public sealed class HudViewModel(IGameHost host) : ViewModelBase
+/// <param name="clockMilliseconds">Horloge du clignotement ; l'horloge système par défaut.</param>
+public sealed class HudViewModel(IGameHost host, Func<long>? clockMilliseconds = null) : ViewModelBase
 {
+    /// <summary>Durée d'une phase du clignotement (allumé, puis éteint).</summary>
+    public const int BlinkMilliseconds = 500;
+
+    private readonly Func<long> _clock = clockMilliseconds ?? (() => Environment.TickCount64);
+    private long _logSeenVersion;
+    private bool _logUnread;
+    private bool _logHighlighted;
+    private bool _logOpen;
+    private string _logLabel = "";
+    private string _logText = "";
+
     private HudSnapshot _last = HudSnapshot.Empty;
     private string _goldLabel = "";
     private string _zoneLabel = "";
@@ -31,8 +49,19 @@ public sealed class HudViewModel(IGameHost host) : ViewModelBase
     public string MenuLabel { get => _menuLabel; private set => SetProperty(ref _menuLabel, value); }
     public bool SoundAvailable { get => _soundAvailable; private set => SetProperty(ref _soundAvailable, value); }
 
+    public string LogLabel { get => _logLabel; private set => SetProperty(ref _logLabel, value); }
+    /// <summary>Un message n'a pas encore été vu.</summary>
+    public bool LogUnread { get => _logUnread; private set => SetProperty(ref _logUnread, value); }
+    /// <summary>Phase allumée du clignotement : les vues mettent alors le bouton en évidence.</summary>
+    public bool LogHighlighted { get => _logHighlighted; private set => SetProperty(ref _logHighlighted, value); }
+    public bool LogOpen { get => _logOpen; private set => SetProperty(ref _logOpen, value); }
+    /// <summary>Le journal, du plus récent au plus ancien, une entrée par ligne.</summary>
+    public string LogText { get => _logText; private set => SetProperty(ref _logText, value); }
+
     public void Refresh(HudSnapshot snapshot)
     {
+        RefreshLog();
+
         // Égalité structurelle du record : rien à faire si rien n'a bougé depuis le dernier sondage.
         if (snapshot == _last && GoldLabel.Length > 0) return;
         _last = snapshot;
@@ -57,4 +86,46 @@ public sealed class HudViewModel(IGameHost host) : ViewModelBase
     public void ToggleSound() => host.Invoke(r => r.ToggleSound());
     public void Save() => host.Invoke(r => r.SaveNow());
     public void ReturnToMenu() => host.Invoke(r => r.ReturnToMenu());
+
+    /// <summary>Ouvre ou ferme le journal ; l'ouvrir marque tout comme vu.</summary>
+    public void ToggleLog()
+    {
+        LogOpen = !LogOpen;
+        RefreshLog();
+    }
+
+    // Le journal est un canal statique et verrouillé, hors de la partie : lu directement, pas par
+    // l'instantané, il reste consultable quand aucune session ne tourne.
+    private void RefreshLog()
+    {
+        long version = GameLog.Version;
+        if (LogOpen) _logSeenVersion = version;
+        LogUnread = version > _logSeenVersion;
+        LogHighlighted = LogUnread && _clock() / BlinkMilliseconds % 2 == 0;
+
+        var entries = GameLog.Snapshot();
+        LogLabel = host.Localize("ui_log", entries.Count);
+        // Recomposé à chaque passage tant qu'il est ouvert : les compteurs de répétition bougent
+        // sans changer la version.
+        if (LogOpen) LogText = Format(entries);
+    }
+
+    private string Format(IReadOnlyList<GameLog.Entry> entries)
+    {
+        if (entries.Count == 0) return host.Localize("ui_log_empty");
+        string error = host.Localize("ui_log_error"), warning = host.Localize("ui_log_warning");
+        var text = new StringBuilder();
+        for (int i = entries.Count - 1; i >= 0; i--)
+        {
+            var e = entries[i];
+            if (text.Length > 0) text.Append('\n');
+            text.Append(e.Time.ToString("HH:mm:ss")).Append("  ")
+                .Append(e.Level == GameLog.Level.Error ? error : warning)
+                .Append("  ").Append(e.Source).Append(" / ").Append(e.Operation).Append(" : ");
+            if (e.ExceptionType.Length > 0) text.Append(e.ExceptionType).Append(" — ");
+            text.Append(e.Message);
+            if (e.Count > 1) text.Append(" (×").Append(e.Count).Append(')');
+        }
+        return text.ToString();
+    }
 }
