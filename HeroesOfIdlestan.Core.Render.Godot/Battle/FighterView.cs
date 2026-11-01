@@ -124,7 +124,7 @@ internal sealed class FighterView
     public void Update(GameState state, Entity fighter, IReadOnlyList<Entity> side, float speed, float delta, Basis camera)
     {
         long now = state.Clock.CurrentTick;
-        var place = BattleLayout.PositionOf(fighter, side, _isHero);
+        var place = BattleLayout.PositionOf(fighter, side, _isHero ? state.HeroHoles : state.MonsterHoles, _isHero);
         // Un vivant marche vers sa place ; un mort reste là où il est tombé. La première fois (vue
         // neuve, même d'un mort), il y est posé.
         if (place is { } target && (fighter.IsAlive || !_walk.IsPlaced))

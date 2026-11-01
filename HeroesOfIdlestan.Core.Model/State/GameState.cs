@@ -41,6 +41,12 @@ public sealed class GameState
     /// <summary>Le groupe de monstres du combat en cours ; un monstre tué en est retiré.</summary>
     public List<MonsterEntity> Monsters { get; set; } = [];
 
+    /// <summary>Places réservées dans la formation de l'équipe, en attendant que quelqu'un avance (GDD §3.2).</summary>
+    public List<FormationHole> HeroHoles { get; set; } = [];
+
+    /// <summary>Places réservées dans la formation des monstres, en attendant que quelqu'un avance (GDD §3.2).</summary>
+    public List<FormationHole> MonsterHoles { get; set; } = [];
+
     // ── Méta ─────────────────────────────────────────────────────────────
 
     public GameEventLog Events { get; set; } = new();

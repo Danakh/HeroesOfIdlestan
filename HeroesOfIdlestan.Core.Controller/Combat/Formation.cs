@@ -3,15 +3,18 @@ using HeroesOfIdlestan.Core.Model.Entities;
 namespace HeroesOfIdlestan.Core.Controller.Combat;
 
 /// <summary>
-/// Géométrie de la formation en pyramide (GDD §3.4) et portées (§4.3). Seuls les vivants comptent :
-/// un mort sort de sa ligne, qui se resserre aussitôt.
+/// Géométrie de la formation en pyramide (GDD §3.4) et portées (§4.3). Seuls les vivants comptent
+/// pour la règle de la pyramide ; un mort laisse un trou (<see cref="FormationHole"/>) qui garde sa
+/// place tant que quelqu'un de derrière doit venir le combler, puis la ligne se resserre.
 ///
-/// <para>Une ligne de <c>n</c> combattants est centrée ; ses positions, en demi-cases, valent
-/// −(n−1), −(n−3), …, n−1, dans l'ordre « de haut en bas » : par <see cref="Entity.Rank"/>, puis
-/// par ordre de la liste.</para>
+/// <para>Une ligne de <c>n</c> places (combattants et trous) est centrée ; ses positions, en
+/// demi-cases, valent −(n−1), −(n−3), …, n−1, dans l'ordre « de haut en bas » : par
+/// <see cref="Entity.Rank"/>, puis par ordre de la liste.</para>
 /// </summary>
 public static class Formation
 {
+    private static readonly IReadOnlyList<FormationHole> NoHoles = [];
+
     /// <summary>Les vivants d'une ligne, de haut en bas ; avec <paramref name="includeDead"/>, les morts aussi.</summary>
     public static List<Entity> LineOf(IReadOnlyList<Entity> side, int line, bool includeDead = false)
     {
@@ -29,101 +32,201 @@ public static class Formation
         return members;
     }
 
+    /// <summary>
+    /// Les places d'une ligne, de haut en bas : ses vivants et ses trous réservés (entrées nulles).
+    /// C'est sur elles que se calculent positions et portées.
+    /// </summary>
+    public static List<Entity?> Slots(IReadOnlyList<Entity> side, IReadOnlyList<FormationHole>? holes, int line) =>
+        SlotsOf(side, holes ?? NoHoles, line).Select(s => s.Fighter).ToList();
+
+    /// <summary>
+    /// Place d'un combattant pour l'affichage : son indice parmi les <paramref name="Count"/> places
+    /// de sa ligne. Un mort reste sur le trou qu'il a laissé, ou à défaut parmi toute sa ligne, morts
+    /// compris. Null s'il ne fait pas partie de la formation.
+    /// </summary>
+    public static (int Index, int Count)? Place(Entity fighter, IReadOnlyList<Entity> side, IReadOnlyList<FormationHole>? holes)
+    {
+        holes ??= NoHoles;
+        var slots = SlotsOf(side, holes, fighter.Line);
+        if (fighter.IsAlive)
+        {
+            int index = slots.FindIndex(s => ReferenceEquals(s.Fighter, fighter));
+            return index < 0 ? null : (index, slots.Count);
+        }
+        int hole = slots.FindIndex(s => s.Hole is { } h && h.Rank == fighter.Rank);
+        if (hole >= 0) return (hole, slots.Count);
+        var line = LineOf(side, fighter.Line, includeDead: true);
+        int fallback = line.IndexOf(fighter);
+        return fallback < 0 ? null : (fallback, line.Count);
+    }
+
+    /// <summary>Le plus grand nombre de places d'une ligne (combattants vivants et trous).</summary>
+    public static int WidestLine(IReadOnlyList<Entity> side, IReadOnlyList<FormationHole>? holes)
+    {
+        int widest = 0;
+        for (int line = 1; line <= DeepestLine(side, holes ?? NoHoles); line++)
+            widest = Math.Max(widest, SlotsOf(side, holes ?? NoHoles, line).Count);
+        return widest;
+    }
+
     // ── Mort et remplacement (GDD §3.2) ──────────────────────────────────
 
     /// <summary>
-    /// Place qu'occupait <paramref name="fallen"/>, qui vient de mourir, dans sa ligne : le nombre de
-    /// vivants de la ligne situés au-dessus de lui. À prendre avant de le retirer de la liste.
+    /// <paramref name="fallen"/> vient de mourir : sa place devient un trou réservé. À appeler avant
+    /// de le retirer de la liste, puis <see cref="Settle"/>.
     /// </summary>
-    public static int HoleOf(IReadOnlyList<Entity> side, Entity fallen)
+    public static void Fall(IReadOnlyList<Entity> side, List<FormationHole> holes, Entity fallen)
     {
-        var line = LineOf(side, fallen.Line, includeDead: true);
-        int hole = 0;
-        foreach (var member in line)
-        {
-            if (ReferenceEquals(member, fallen)) break;
-            if (member.IsAlive) hole++;
-        }
-        return hole;
+        // Les rangs de la ligne, renumérotés de haut en bas, le mort compris : son trou a un rang à lui.
+        var slots = SlotsOf(side, holes, fallen.Line, fallen);
+        Renumber(slots);
+        holes.Add(new FormationHole { Line = fallen.Line, Rank = fallen.Rank });
     }
 
     /// <summary>
-    /// Rétablit la règle de la pyramide après une mort (GDD §3.2). La ligne touchée s'est déjà
-    /// resserrée (seuls les vivants comptent) ; si elle n'a plus strictement plus de combattants que
-    /// la ligne de derrière, un combattant situé derrière le trou avance pour le combler — d'abord
-    /// celui dont la ligne préférée est la ligne à combler, puis le plus haut. Son départ laisse à son
-    /// tour un trou dans sa ligne : on répète, ligne par ligne, jusqu'à une formation valide.
-    ///
-    /// <para>Sans trou connu (<paramref name="hole"/> null : formation chargée, début de combat,
-    /// arrivée d'un marcheur), tous les combattants de la ligne de derrière sont candidats, et
-    /// l'arrivant prend le centre.</para>
+    /// Rétablit la règle de la pyramide (GDD §3.2), ligne par ligne depuis le front. Une ligne qui a
+    /// encore strictement plus de combattants que la ligne de derrière se resserre (ses trous
+    /// disparaissent). Sinon, quelqu'un de derrière doit avancer : celui qui est derrière un trou
+    /// (le plus en face, puis la ligne préférée, puis le plus haut) vient l'occuper, et ses voisins
+    /// ne bougent pas ; sa place quittée devient à son tour un trou, traité à la ligne suivante. Une
+    /// ligne sans trou (formation chargée, début de combat) reçoit l'arrivant au centre.
     ///
     /// <para>Un combattant encore en marche au tick <paramref name="tick"/> (<see cref="Entity.ArrivalTick"/>)
-    /// n'est pas candidat : un mouvement ne franchit qu'une ligne. Faute de candidat, la ligne reste
-    /// incomplète ; le prochain appel, à l'arrivée du marcheur, la complète.</para>
+    /// ne peut pas avancer : un mouvement ne franchit qu'une ligne. Si c'est lui qui est derrière le
+    /// trou, le trou attend son arrivée, et le prochain appel le comble.</para>
     /// </summary>
     /// <returns>Les combattants qui ont avancé, dans l'ordre.</returns>
-    public static List<Entity> Settle(IReadOnlyList<Entity> side, int fromLine = 1, int? hole = null, long tick = 0)
+    public static List<Entity> Settle(IReadOnlyList<Entity> side, List<FormationHole> holes, long tick = 0)
     {
         var advanced = new List<Entity>();
-        for (int line = Math.Max(1, fromLine); line < DeepestLine(side); line++)
+        for (int line = 1; line <= DeepestLine(side, holes); line++)
         {
-            var front = LineOf(side, line);
-            var back = LineOf(side, line + 1);
-            int? nextHole = null;
-            int moves = 0;
-            while (back.Count > 0 && front.Count <= back.Count)
+            while (true)
             {
-                int slot = Math.Clamp(hole ?? front.Count / 2, 0, front.Count);
-                int from = PickAdvancer(back, line, hole.HasValue ? slot : null, tick);
-                if (from < 0) break; // tous en marche : la ligne attend leur arrivée
-                var advancer = back[from];
+                var front = SlotsOf(side, holes, line);
+                var back = SlotsOf(side, holes, line + 1);
+                Renumber(front);
+                Renumber(back);
+                int occupants = front.Count(s => s.Fighter != null);
+                int behind = back.Count(s => s.Fighter != null);
 
+                if (behind == 0 || occupants > behind)
+                {
+                    // Personne n'a besoin d'avancer : la ligne se resserre.
+                    if (holes.RemoveAll(h => h.Line == line) > 0) Renumber(SlotsOf(side, holes, line));
+                    break;
+                }
+
+                Entity? advancer = null;
+                FormationHole? target = null;
+                if (front.Any(s => s.Hole != null))
+                {
+                    for (int i = 0; i < front.Count && advancer == null; i++)
+                        if (front[i].Hole is { } hole && PickBehind(front, i, back, line, tick) is { } pick)
+                            (advancer, target) = (pick, hole);
+                }
+                else
+                {
+                    advancer = PickAny(back, line, tick);
+                }
+                if (advancer == null) break; // le candidat marche encore : le trou attend son arrivée
+
+                holes.Add(new FormationHole { Line = line + 1, Rank = advancer.Rank });
                 advancer.Line = line;
-                front.Insert(slot, advancer);
-                for (int i = 0; i < front.Count; i++) front[i].Rank = i;
-                back.RemoveAt(from);
+                if (target != null)
+                {
+                    advancer.Rank = target.Rank;
+                    holes.Remove(target);
+                }
+                else
+                {
+                    int center = occupants / 2;
+                    foreach (var slot in front)
+                        if (slot.Fighter is { } f && f.Rank >= center) f.Rank++;
+                    advancer.Rank = center;
+                }
                 advanced.Add(advancer);
-
-                nextHole = from;
-                hole = null; // un deuxième arrivant (formation déjà invalide) n'a plus de trou désigné
-                moves++;
             }
-            // Le trou se propage à la ligne de derrière seulement si elle a perdu un seul combattant.
-            hole = moves == 1 ? nextHole : null;
         }
         return advanced;
     }
 
     /// <summary>
-    /// Index, dans <paramref name="back"/>, du combattant qui avance en ligne <paramref name="line"/>.
-    /// Derrière un trou d'une ligne en quinconce, seuls les un ou deux combattants adjacents au trou
-    /// sont candidats (indices <c>slot − 1</c> et <c>slot</c>). Ceux encore en marche au tick
-    /// <paramref name="tick"/> sont écartés ; −1 s'il ne reste personne.
+    /// Celui de la ligne de derrière qui vient occuper le trou d'indice <paramref name="hole"/> : parmi
+    /// les plus en face du trou, d'abord la ligne préférée, puis le plus haut. Null si ceux-là sont
+    /// tous encore en marche.
     /// </summary>
-    private static int PickAdvancer(List<Entity> back, int line, int? slot, long tick)
+    private static Entity? PickBehind(List<Slot> front, int hole, List<Slot> back, int line, long tick)
     {
-        int first = 0, last = back.Count - 1;
-        if (slot is { } s)
+        int holePosition = HalfPosition(hole, front.Count);
+        int nearest = int.MaxValue;
+        for (int j = 0; j < back.Count; j++)
+            if (back[j].Fighter != null)
+                nearest = Math.Min(nearest, Math.Abs(HalfPosition(j, back.Count) - holePosition));
+
+        Entity? first = null;
+        for (int j = 0; j < back.Count; j++)
         {
-            first = Math.Clamp(s - 1, 0, back.Count - 1);
-            last = Math.Clamp(s, 0, back.Count - 1);
+            if (back[j].Fighter is not { } candidate) continue;
+            if (Math.Abs(HalfPosition(j, back.Count) - holePosition) != nearest) continue;
+            if (candidate.ArrivalTick > tick) continue;
+            if (candidate.PreferredLine == line) return candidate;
+            first ??= candidate;
         }
-        int fallback = -1;
-        for (int i = first; i <= last; i++)
-        {
-            if (back[i].ArrivalTick > tick) continue;
-            if (back[i].PreferredLine == line) return i;
-            if (fallback < 0) fallback = i;
-        }
-        return fallback;
+        return first;
     }
 
-    private static int DeepestLine(IReadOnlyList<Entity> side)
+    /// <summary>Sans trou désigné : n'importe qui de la ligne de derrière, la ligne préférée d'abord, puis le plus haut.</summary>
+    private static Entity? PickAny(List<Slot> back, int line, long tick)
+    {
+        Entity? first = null;
+        foreach (var slot in back)
+        {
+            if (slot.Fighter is not { } candidate || candidate.ArrivalTick > tick) continue;
+            if (candidate.PreferredLine == line) return candidate;
+            first ??= candidate;
+        }
+        return first;
+    }
+
+    private readonly record struct Slot(Entity? Fighter, FormationHole? Hole);
+
+    /// <summary>Places d'une ligne de haut en bas ; <paramref name="extra"/> y est compté même mort.</summary>
+    private static List<Slot> SlotsOf(IReadOnlyList<Entity> side, IReadOnlyList<FormationHole> holes, int line, Entity? extra = null)
+    {
+        var slots = new List<Slot>();
+        foreach (var fighter in LineOf(side, line, includeDead: true))
+            if (fighter.IsAlive || ReferenceEquals(fighter, extra)) slots.Add(new Slot(fighter, null));
+        foreach (var hole in holes)
+            if (hole.Line == line) slots.Add(new Slot(null, hole));
+        // Tri par insertion, stable : à égalité de rang, les combattants avant les trous.
+        for (int i = 1; i < slots.Count; i++)
+        {
+            var slot = slots[i];
+            int j = i - 1;
+            while (j >= 0 && RankOf(slots[j]) > RankOf(slot)) { slots[j + 1] = slots[j]; j--; }
+            slots[j + 1] = slot;
+        }
+        return slots;
+    }
+
+    private static int RankOf(Slot slot) => slot.Fighter?.Rank ?? slot.Hole!.Rank;
+
+    private static void Renumber(List<Slot> slots)
+    {
+        for (int i = 0; i < slots.Count; i++)
+        {
+            if (slots[i].Fighter is { } fighter) fighter.Rank = i;
+            else slots[i].Hole!.Rank = i;
+        }
+    }
+
+    private static int DeepestLine(IReadOnlyList<Entity> side, IReadOnlyList<FormationHole> holes)
     {
         int deepest = 0;
         for (int i = 0; i < side.Count; i++)
             if (side[i].IsAlive) deepest = Math.Max(deepest, side[i].Line);
+        foreach (var hole in holes) deepest = Math.Max(deepest, hole.Line);
         return deepest;
     }
 
@@ -134,22 +237,24 @@ public static class Formation
 
     /// <summary>
     /// Distance d'un attaquant à une cible du camp adverse (GDD §4.3) : ligne de l'attaquant + ligne
-    /// de la cible − 1, plus l'écart latéral entre la cible et l'adversaire le plus en face. Quand deux
-    /// adversaires sont autant en face (lignes en quinconce), l'écart se compte depuis le plus proche
-    /// des deux (GDD §8, question ouverte). La distance n'est pas réciproque.
+    /// de la cible − 1, plus l'écart latéral (en places, trous compris) entre la cible et l'adversaire
+    /// le plus en face. Quand deux adversaires sont autant en face (lignes en quinconce), l'écart se
+    /// compte depuis le plus proche des deux (GDD §8, question ouverte). La distance n'est pas réciproque.
     /// </summary>
-    public static int Distance(Entity attacker, IReadOnlyList<Entity> attackerSide, Entity target, IReadOnlyList<Entity> targetSide)
+    public static int Distance(Entity attacker, IReadOnlyList<Entity> attackerSide, Entity target, IReadOnlyList<Entity> targetSide,
+        IReadOnlyList<FormationHole>? attackerHoles = null, IReadOnlyList<FormationHole>? targetHoles = null)
     {
-        var mine = LineOf(attackerSide, attacker.Line);
+        var mine = Slots(attackerSide, attackerHoles, attacker.Line);
         int attackerPosition = HalfPosition(mine.IndexOf(attacker), mine.Count);
 
-        var theirs = LineOf(targetSide, target.Line);
+        var theirs = Slots(targetSide, targetHoles, target.Line);
         int targetIndex = theirs.IndexOf(target);
 
         int bestFacing = int.MaxValue;
         int lateral = int.MaxValue;
         for (int i = 0; i < theirs.Count; i++)
         {
+            if (theirs[i] == null) continue;
             int facing = Math.Abs(HalfPosition(i, theirs.Count) - attackerPosition);
             int gap = Math.Abs(targetIndex - i);
             if (facing < bestFacing) { bestFacing = facing; lateral = gap; }
@@ -163,17 +268,18 @@ public static class Formation
     /// base (la ligne la plus lointaine), puis le plus en face, puis l'ordre de haut en bas.
     /// Null si personne n'est à portée.
     /// </summary>
-    public static Entity? ChooseTarget(Entity attacker, IReadOnlyList<Entity> attackerSide, IReadOnlyList<Entity> targetSide, int minRange, int maxRange)
+    public static Entity? ChooseTarget(Entity attacker, IReadOnlyList<Entity> attackerSide, IReadOnlyList<Entity> targetSide, int minRange, int maxRange,
+        IReadOnlyList<FormationHole>? attackerHoles = null, IReadOnlyList<FormationHole>? targetHoles = null)
     {
         Entity? best = null;
         int bestLine = 0, bestLateral = 0;
-        int deepest = DeepestLine(targetSide);
+        int deepest = DeepestLine(targetSide, NoHoles);
         for (int line = 1; line <= deepest; line++)
         {
             // Chaque ligne parcourue de haut en bas : à égalité, le premier trouvé l'emporte.
             foreach (var candidate in LineOf(targetSide, line))
             {
-                int distance = Distance(attacker, attackerSide, candidate, targetSide);
+                int distance = Distance(attacker, attackerSide, candidate, targetSide, attackerHoles, targetHoles);
                 if (distance < minRange || distance > maxRange) continue;
                 int lateral = distance - (attacker.Line + candidate.Line - 1);
                 if (best == null || candidate.Line > bestLine || (candidate.Line == bestLine && lateral < bestLateral))

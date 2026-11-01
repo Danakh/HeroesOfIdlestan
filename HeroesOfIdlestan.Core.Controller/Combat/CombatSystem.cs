@@ -73,8 +73,9 @@ public sealed class CombatSystem : ISimulationSystem
             if (hero.IsAlive) hero.NextActionTick = tick + Stats(state, hero).CooldownTicks;
         }
         // Les groupes du contenu sont des pyramides valides ; une sauvegarde éditée à la main, peut-être pas.
-        Formation.Settle(state.Heroes);
-        Formation.Settle(state.Monsters);
+        state.MonsterHoles.Clear();
+        Formation.Settle(state.Heroes, state.HeroHoles);
+        Formation.Settle(state.Monsters, state.MonsterHoles);
 
         state.Run.Phase = RunPhase.Fighting;
         state.Run.LastOutcome = FightOutcome.None;
@@ -117,7 +118,8 @@ public sealed class CombatSystem : ISimulationSystem
         };
         // Aucune action depuis cette ligne, ou personne à portée : il ne fait rien (GDD §5.1).
         if (action == null) return;
-        var target = Formation.ChooseTarget(actor, allies, enemies, action.MinRange, action.MaxRange);
+        var target = Formation.ChooseTarget(actor, allies, enemies, action.MinRange, action.MaxRange,
+            isHero ? state.HeroHoles : state.MonsterHoles, isHero ? state.MonsterHoles : state.HeroHoles);
         if (target == null) return;
 
         actor.LastActionTick = tick;
@@ -135,9 +137,10 @@ public sealed class CombatSystem : ISimulationSystem
     /// </summary>
     private static void OnDeath(GameState state, Entity fallen, IReadOnlyList<Entity> side, long tick)
     {
-        int hole = Formation.HoleOf(side, fallen);
+        var holes = HolesOf(state, fallen);
+        Formation.Fall(side, holes, fallen);
         if (fallen is MonsterEntity monster) state.Monsters.Remove(monster);
-        StartWalks(Formation.Settle(side, fallen.Line, hole, tick), tick);
+        StartWalks(Formation.Settle(side, holes, tick), tick);
     }
 
     /// <summary>
@@ -149,8 +152,12 @@ public sealed class CombatSystem : ISimulationSystem
         long tick = walker.ArrivalTick;
         walker.ArrivalTick = 0;
         IReadOnlyList<Entity> side = walker is HeroEntity ? state.Heroes : state.Monsters;
-        StartWalks(Formation.Settle(side, tick: tick), tick);
+        StartWalks(Formation.Settle(side, HolesOf(state, walker), tick), tick);
     }
+
+    /// <summary>Les trous réservés du camp de <paramref name="fighter"/> (héros si null).</summary>
+    private static List<FormationHole> HolesOf(GameState state, Entity? fighter) =>
+        fighter is MonsterEntity ? state.MonsterHoles : state.HeroHoles;
 
     /// <summary>Ceux qui avancent marchent jusqu'à leur nouvelle place et n'agissent qu'une fois arrivés.</summary>
     private static void StartWalks(List<Entity> advancers, long tick)
@@ -244,6 +251,7 @@ public sealed class CombatSystem : ISimulationSystem
             {
                 hero.Line = hero.FormationLine;
                 hero.Rank = 0;
+                state.HeroHoles.Clear();
             }
             if (hero.IsAlive || run.LastOutcome == FightOutcome.Defeat)
                 hero.Health = Stats(state, hero).MaxHealth;

@@ -32,24 +32,19 @@ public static class BattleLayout
     /// </summary>
     public static SKRect BoundsFor(GameState state)
     {
-        int widest = Math.Max(WidestLine(state.Heroes), WidestLine(state.Monsters));
+        int widest = Math.Max(Formation.WidestLine(state.Heroes, state.HeroHoles), Formation.WidestLine(state.Monsters, state.MonsterHoles));
         float halfHeight = Math.Max(-Bounds.Top, (widest - 1) * HalfSlot + FighterRadius + 40f);
         return SKRect.Create(Bounds.Left, -halfHeight, Bounds.Width, 2 * halfHeight);
     }
 
-    private static int WidestLine(IEnumerable<Entity> side) =>
-        side.GroupBy(f => f.Line).Select(g => g.Count()).DefaultIfEmpty(0).Max();
-
     /// <summary>Position d'un combattant ; null s'il ne fait pas (ou plus) partie de la formation.</summary>
-    public static SKPoint? PositionOf(Entity fighter, IReadOnlyList<Entity> side, bool isHero)
+    public static SKPoint? PositionOf(Entity fighter, IReadOnlyList<Entity> side, IReadOnlyList<FormationHole> holes, bool isHero)
     {
-        // Les vivants se resserrent ; un mort reste dessiné là où il est tombé, parmi toute sa ligne.
-        var line = Formation.LineOf(side, fighter.Line, includeDead: !fighter.IsAlive);
-        int index = line.IndexOf(fighter);
-        if (index < 0) return null;
+        // Les places de la ligne, trous réservés compris : un mort reste dessiné là où il est tombé.
+        if (Formation.Place(fighter, side, holes) is not (int index, int count)) return null;
 
         float x = FrontOffset + (fighter.Line - 1) * LineSpacing;
-        float y = Formation.HalfPosition(index, line.Count) * HalfSlot;
+        float y = Formation.HalfPosition(index, count) * HalfSlot;
         return new SKPoint(isHero ? -x : x, y);
     }
 }
@@ -192,8 +187,8 @@ public sealed class FighterRenderer : IGameRenderer
 
         _seen.Clear();
         _drawOrder.Clear();
-        Sync(state.Heroes, isHero: true, now);
-        Sync(state.Monsters, isHero: false, now);
+        Sync(state.Heroes, state.HeroHoles, isHero: true, now);
+        Sync(state.Monsters, state.MonsterHoles, isHero: false, now);
         _freshState = false;
 
         // Un combattant qui quitte la liste (monstre tué) tombe là où il était avant de disparaître ;
@@ -218,12 +213,12 @@ public sealed class FighterRenderer : IGameRenderer
         canvas.Restore();
     }
 
-    private void Sync(IReadOnlyList<Entity> side, bool isHero, long now)
+    private void Sync(IReadOnlyList<Entity> side, IReadOnlyList<FormationHole> holes, bool isHero, long now)
     {
         foreach (var entity in side)
         {
             _seen.Add(entity);
-            var place = BattleLayout.PositionOf(entity, side, isHero);
+            var place = BattleLayout.PositionOf(entity, side, holes, isHero);
             if (!_fighters.TryGetValue(entity, out var fighter))
             {
                 if (place is null) continue;

@@ -95,11 +95,58 @@ public class FormationDeathTests
         return Enumerable.Range(1, lines.DefaultIfEmpty(0).Max()).Select(l => lines.Count(x => x == l)).ToArray();
     }
 
-    private static void Kill(List<Entity> side, Entity fallen)
+    private static void Kill(List<Entity> side, Entity fallen, List<FormationHole>? holes = null, long tick = 0)
     {
-        int hole = Formation.HoleOf(side, fallen);
+        holes ??= [];
         fallen.Health = 0;
-        Formation.Settle(side, fallen.Line, hole);
+        Formation.Fall(side, holes, fallen);
+        Formation.Settle(side, holes, tick);
+    }
+
+    /// <summary>Les places d'une ligne : l'indice de chaque combattant donné, ou −1 pour un trou.</summary>
+    private static int[] Layout(List<Entity> side, List<FormationHole> holes, int line) =>
+        Formation.Slots(side, holes, line).Select(f => f == null ? -1 : side.IndexOf(f)).ToArray();
+
+    [Fact]
+    public void TheNeighbours_DoNotMove_WhenSomeoneAdvances()
+    {
+        var team = Pyramid(3, 2);       // A B C / D E
+        var holes = new List<FormationHole>();
+        Kill(team, team[0], holes);     // A meurt, D avance à sa place : B et C ne bougent pas
+        Assert.Equal([3, 1, 2], Layout(team, holes, 1));
+        Assert.Equal([4], Layout(team, holes, 2)); // derrière, personne n'a à avancer : E se resserre
+        Assert.Empty(holes);
+    }
+
+    [Fact]
+    public void TheHole_WaitsForAWalker_AndKeepsItsPlace()
+    {
+        var team = Pyramid(3, 2, 1);    // A B C / D E / F
+        var holes = new List<FormationHole>();
+        team[3].ArrivalTick = 10;       // D, seul derrière A, marche encore
+        Kill(team, team[0], holes, tick: 5);
+        Assert.Equal([-1, 1, 2], Layout(team, holes, 1)); // la ligne ne se resserre pas
+        Assert.Equal(2, team[3].Line);
+
+        team[3].ArrivalTick = 0;        // D arrive
+        Assert.Equal([team[3], team[5]], Formation.Settle(team, holes, tick: 10));
+        Assert.Equal([3, 1, 2], Layout(team, holes, 1)); // D prend la place de A
+        Assert.Equal([5, 4], Layout(team, holes, 2));    // F prend celle de D
+        Assert.Equal([3, 2], Shape(team));
+        Assert.Empty(holes);
+    }
+
+    [Fact]
+    public void TheHole_CountsInTheDistances()
+    {
+        var team = Pyramid(3, 2);       // A B C / D E
+        var holes = new List<FormationHole>();
+        team[3].ArrivalTick = 10;
+        Kill(team, team[0], holes, tick: 5);
+        var monster = new List<Entity> { new MonsterEntity { Health = 1 } };
+        // Le monstre fait face au centre (B) ; C est à une place de lui, trou ou pas.
+        Assert.Equal(2, Formation.Distance(monster[0], monster, team[2], team, targetHoles: holes));
+        Assert.Equal(1, Formation.Distance(monster[0], monster, team[1], team, targetHoles: holes));
     }
 
     [Fact]
@@ -151,7 +198,7 @@ public class FormationDeathTests
     public void AnInvalidFormation_IsSettledWithoutAHole()
     {
         var team = Pyramid(2, 2, 1);
-        Formation.Settle(team);
+        Formation.Settle(team, []);
         Assert.Equal([3, 2], Shape(team));
     }
 }
