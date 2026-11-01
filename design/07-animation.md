@@ -112,8 +112,10 @@ affiche : un modèle incomplet reste jouable, et ce qui manque se voit. Une anim
 
 Côté Godot, `FighterView` passe par ce résolveur. Le robot de test n'a ni attaque, ni coup reçu, ni
 mort : le journal le signale. Sans clip `death`, la pose se fige et le corps tombe à la renverse.
-Côté Skia, le jeu dessine encore les combattants en ronds et ne joue pas d'animation squelettale :
-le catalogue servira quand les habillages y seront branchés.
+Côté Skia, les combattants sont le même robot, en planches de sprites tirées du glTF
+([09](09-sprite-sheets.md#dans-le-jeu-skia)) : `FighterRenderer` passe par le même résolveur, avec
+les mêmes règles (`FighterAnimation`, dans Presentation). Les squelettes SVG n'y sont pas encore
+branchés.
 
 `AnimationCatalogTests` vérifie que `humanoid` a tout le catalogue.
 

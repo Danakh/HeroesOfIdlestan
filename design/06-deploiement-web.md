@@ -10,7 +10,7 @@ publie le head Browser et met en ligne le bundle sur GitHub Pages, à l'adresse
 
    ```powershell
    git remote add origin https://github.com/<compte>/<dépôt>.git
-   git push -u origin main
+   git push -u origin master
    ```
 
 2. **Activer Pages avec GitHub Actions comme source** : *Settings > Pages > Build and deployment >
@@ -22,7 +22,7 @@ publie le head Browser et met en ligne le bundle sur GitHub Pages, à l'adresse
 4. **Autoriser les tags** : l'environnement `github-pages` n'accepte par défaut que les déploiements
    depuis la branche par défaut. Pour publier par tag, dans *Settings > Environments > github-pages >
    Deployment branches and tags*, ajouter une règle de tag `v*`. Sans elle, le déploiement par tag
-   est refusé (le lancement manuel depuis `main` marche toujours).
+   est refusé (le lancement manuel depuis `master` marche toujours).
 
 ## Publier
 
@@ -46,8 +46,12 @@ publication WebAssembly est longue.
 | Test | `dotnet test HeroesOfIdlestan.Test.Tests` : pas de mise en ligne si une sauvegarde ne se relit plus |
 | Install WASM workload | `wasm-tools`, pour la publication Release |
 | Publish | `dotnet publish HeroesOfIdlestan.App.Browser -c Release` ; le bundle est dans `bin/Release/net10.0-browser/browser-wasm/AppBundle` |
-| Add .nojekyll | Sans lui, Jekyll ignore `_framework/` (préfixe « _ ») et la page reste noire |
 | Upload / Deploy | Artefact Pages puis mise en ligne |
+
+Pas de `.nojekyll` : un artefact déployé par Actions est servi tel quel, sans Jekyll, et
+`_framework/` est donc publié. (`upload-pages-artifact` ignore de toute façon les fichiers cachés.)
+Les actions sont en versions Node 24 (`checkout@v7`, `setup-dotnet@v6`, `configure-pages@v6`,
+`upload-pages-artifact@v5`, `deploy-pages@v5`).
 
 ## Tester localement avant de publier
 
@@ -62,7 +66,7 @@ Ne pas ouvrir `index.html` directement depuis le disque : les modules JS et le W
 
 ## Pièges
 
-- **Page noire** : ouvrir la console du navigateur. Causes typiques : `.nojekyll` absent, réflexion
+- **Page noire** : ouvrir la console du navigateur. Causes typiques : réflexion
   JSON désactivée (voir 05), chemin absolu dans `index.html` (`/main.js` au lieu de `./main.js`).
 - **Ancienne version affichée** : le navigateur garde `_framework/` en cache ; recharger sans cache
   (Ctrl+F5).

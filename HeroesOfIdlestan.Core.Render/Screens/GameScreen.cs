@@ -29,16 +29,20 @@ public sealed class GameScreen : IScreen
     private readonly GameController _game;
     private readonly Camera2D _camera = new();
     private readonly InputRouter _input;
-    private readonly RenderPipeline _renderers = new RenderPipeline()
-        .Add(new GroundRenderer())
-        .Add(new FighterRenderer());
+    private readonly FighterRenderer _fighters = new();
+    private readonly RenderPipeline _renderers;
     private bool _framed;
 
     public GameScreen(GameController game)
     {
         _game = game;
         _input = new InputRouter(_camera);
-        _game.StateReplaced += () => _framed = false;
+        _renderers = new RenderPipeline().Add(new GroundRenderer()).Add(_fighters);
+        _game.StateReplaced += () =>
+        {
+            _framed = false;
+            _fighters.Reset();
+        };
     }
 
     public Camera2D Camera => _camera;

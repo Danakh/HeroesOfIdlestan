@@ -30,6 +30,8 @@ public static class AnimationCodec
     public const string SkeletonFormat = "hoi-skeleton";
     public const string SkinFormat = "hoi-skin";
     public const string AnimationFormat = "hoi-animation";
+    /// <summary>Manifeste de planches de sprites, écrit par Tool.SpriteSheet (design/09).</summary>
+    public const string SpriteSheetFormat = "hoi-spritesheet";
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -132,6 +134,35 @@ public static class AnimationCodec
         foreach (var bone in animation.Bones.Keys)
             if (skeleton.IndexOf(bone) < 0) errors.Add($"Os '{bone}' absent du squelette.");
         ThrowIfAny(errors);
+    }
+
+    // ── Planches de sprites ───────────────────────────────────────────────
+
+    public static string EncodeSpriteSheet(SpriteSheetData sheet) => Encode(SpriteSheetFormat, sheet);
+
+    public static SpriteSheetData DecodeSpriteSheet(string json)
+    {
+        var s = Decode<SpriteSheetData>(json, SpriteSheetFormat);
+        var errors = new List<string>();
+        if (s.FrameWidth <= 0 || s.FrameHeight <= 0) errors.Add($"Taille d'image invalide : {s.FrameWidth}×{s.FrameHeight}.");
+        if (!(s.PixelsPerUnit > 0) || !float.IsFinite(s.PixelsPerUnit)) errors.Add($"pixelsPerUnit invalide : {s.PixelsPerUnit}.");
+        if (!float.IsFinite(s.PivotX + s.PivotY)) errors.Add("Pivot non fini.");
+        if (s.Animations.Count == 0) errors.Add("Aucune planche.");
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var clip in s.Animations)
+        {
+            string label = $"Planche '{clip.Name}' ({clip.Direction}°)";
+            if (string.IsNullOrWhiteSpace(clip.Name)) errors.Add("Planche sans nom.");
+            if (string.IsNullOrWhiteSpace(clip.Image)) errors.Add($"{label} : image manquante.");
+            if (!seen.Add($"{clip.Name}@{clip.Direction}")) errors.Add($"{label} déclarée deux fois.");
+            if (clip.Frames <= 0 || clip.Columns <= 0 || clip.Rows <= 0 || clip.Columns * clip.Rows < clip.Frames)
+                errors.Add($"{label} : grille {clip.Columns}×{clip.Rows} invalide pour {clip.Frames} image(s).");
+            if (!(clip.FrameDuration > 0) || !float.IsFinite(clip.FrameDuration)) errors.Add($"{label} : frameDuration invalide.");
+            if (!(clip.Duration >= 0) || !float.IsFinite(clip.Duration)) errors.Add($"{label} : durée invalide.");
+        }
+        ThrowIfAny(errors);
+        return s;
     }
 
     // ── Commun ────────────────────────────────────────────────────────────

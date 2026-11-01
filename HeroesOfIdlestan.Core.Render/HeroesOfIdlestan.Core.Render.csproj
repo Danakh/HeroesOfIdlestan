@@ -9,6 +9,14 @@
     <PackageReference Include="Svg.Skia" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
+    <!--
+      Planches de sprites produites par Tool.SpriteSheet (design/09), chargées par SpriteSheet.LoadEmbedded.
+      Nom de ressource : sprites/<dossier>/<fichier> (séparateur normalisé au chargement).
+    -->
+    <EmbeddedResource Include="../assets/sprites/**/*.sprites.json;../assets/sprites/**/*.png"
+                      LogicalName="sprites/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="HeroesOfIdlestan.Test.Tests" />
   </ItemGroup>
   <ItemGroup>

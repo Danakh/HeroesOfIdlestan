@@ -31,10 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -49,18 +49,18 @@ jobs:
       - name: Publish
         run: dotnet publish HeroesOfIdlestan.App.Browser/HeroesOfIdlestan.App.Browser.csproj -c Release
 
-      # Jekyll ignore les dossiers préfixés par « _ », dont _framework/ où vit le runtime .NET.
-      - name: Add .nojekyll
-        run: touch $APP_BUNDLE/.nojekyll
+      # Pas de .nojekyll : un artefact déployé par Actions est servi tel quel, sans passer par Jekyll,
+      # donc _framework/ (le runtime .NET) est publié. upload-pages-artifact ignore d'ailleurs les
+      # fichiers cachés.
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ env.APP_BUNDLE }}
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

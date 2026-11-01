@@ -1,0 +1,59 @@
+{
+  "format": "hoi-spritesheet",
+  "version": 1,
+  "model": "bake3d-robot-animated.glb",
+  "frameWidth": 83,
+  "frameHeight": 129,
+  "pivotX": 41.04,
+  "pivotY": 125.45,
+  "pixelsPerUnit": 63.18,
+  "yaw": 90,
+  "pitch": 0,
+  "fps": 12,
+  "animations": [
+    {
+      "name": "Idle",
+      "direction": 0,
+      "image": "idle.png",
+      "frames": 48,
+      "columns": 48,
+      "rows": 1,
+      "frameDuration": 0.083333,
+      "duration": 4,
+      "loop": true
+    },
+    {
+      "name": "Intro",
+      "direction": 0,
+      "image": "intro.png",
+      "frames": 49,
+      "columns": 49,
+      "rows": 1,
+      "frameDuration": 0.083333,
+      "duration": 4,
+      "loop": false
+    },
+    {
+      "name": "Look around",
+      "direction": 0,
+      "image": "look_around.png",
+      "frames": 60,
+      "columns": 60,
+      "rows": 1,
+      "frameDuration": 0.083333,
+      "duration": 5,
+      "loop": true
+    },
+    {
+      "name": "Walk",
+      "direction": 0,
+      "image": "walk.png",
+      "frames": 48,
+      "columns": 48,
+      "rows": 1,
+      "frameDuration": 0.083333,
+      "duration": 4,
+      "loop": true
+    }
+  ]
+}

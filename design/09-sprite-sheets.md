@@ -103,6 +103,34 @@ L'image *i* d'une planche occupe le rectangle
 `(i % columns × frameWidth, i / columns × frameHeight, frameWidth, frameHeight)` ; elle se montre
 de `i × frameDuration` à `(i + 1) × frameDuration`.
 
-Le jeu ne lit pas encore ces planches : la pile Skia dessine ses personnages par squelette et SVG
-([07](07-animation.md)). Les brancher demandera un codec dans `Core.Model`, sur le modèle
-d'`AnimationCodec` (format, version, migrations).
+`AnimationCodec.DecodeSpriteSheet` (`Core.Model`) lit le manifeste et le valide (grille, durées,
+propriété inconnue refusée) ; `SpriteSheetData` en donne l'image à montrer à un instant
+(`FrameAt`) et la planche la plus proche d'une orientation (`Find`). Faire évoluer le format : même
+règle que pour les autres fichiers d'animation ([07](07-animation.md#fichiers)), et l'outil écrit
+la nouvelle version.
+
+## Dans le jeu (Skia)
+
+La pile Skia dessine les combattants avec les planches du robot de la version Godot, produites par :
+
+```bash
+dotnet run --project HeroesOfIdlestan.Tool.SpriteSheet -- --anims "Idle,Walk,Intro,Look around" --loop "idle,walk,run,look around"
+```
+
+| Pièce | Projet | Rôle |
+|---|---|---|
+| `assets/sprites/bake3d-robot-animated/` | — | Planches et manifeste, versionnés |
+| `SpriteSheet` | Render | Charge un jeu de planches **embarqué** dans l'assembly (`EmbeddedResource`, nom `sprites/<dossier>/<fichier>`) : bureau, web et Android l'ont sans accès au disque ; dessine une image, pivot à l'origine |
+| `SpriteAnimator` | Render | Par combattant : fond en boucle, animation ponctuelle (intro, attaque, coup reçu) jusqu'au bout, mort tenue ou pose figée ; en ticks de jeu |
+| `FighterRenderer` | Render | Sprites triés de haut en bas, teinte de camp, miroir des monstres et de la marche vers la gauche, chute à la renverse, corps d'un monstre tué gardé 1,2 s |
+| `FighterAnimation`, `FighterCues` | Presentation | Choix du fond et détection des attaques et coups reçus, communs avec `FighterView` (Godot) |
+
+Les animations passent par le même `AnimationResolver` que sous Godot : il manque au robot
+l'attaque, le coup reçu et la mort, et le journal (bouton « Log ») le signale. Si les planches
+manquent ou sont illisibles, l'erreur est consignée et les combattants redeviennent des ronds.
+
+Les planches pèsent sur le téléchargement de la version web (1,6 Mo pour le robot, dans
+`HeroesOfIdlestan.Core.Render.wasm`) : cuire seulement les clips joués, et réduire `--size` ou
+`--fps` si besoin. Changer de modèle : cuire dans `assets/sprites/<modèle>/` et changer
+`FighterRenderer.SpriteSheetId`. `SpriteSheetTests` vérifie que les planches livrées se lisent,
+qu'elles sont embarquées et que l'écran de combat les dessine.

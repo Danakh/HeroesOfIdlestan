@@ -25,14 +25,6 @@ namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 /// </summary>
 internal sealed class FighterView
 {
-    /// <summary>
-    /// Animations propres au modèle de test, hors catalogue : jouées si elles existent, sans
-    /// secours ni avertissement.
-    /// </summary>
-    public const string LookAround = "Look around";
-    public const string Intro = "Intro";
-    private static readonly string[] Loops = [AnimationNames.Idle, AnimationNames.Walk, "Run", LookAround];
-
     /// <summary>Durée de la fente qui suit une action, en ticks de jeu.</summary>
     private const float LungeTicks = 20f;
     private const float LungeDistance = 0.6f;
@@ -62,8 +54,7 @@ internal sealed class FighterView
     private readonly AnimationResolver? _resolver;
     /// <summary>Attaque ou coup reçu en cours : joué jusqu'au bout avant de revenir au fond.</summary>
     private string? _oneShot;
-    private long? _lastActionSeen;
-    private long _lastHealth;
+    private readonly FighterCues _cues;
     private bool _deathStarted;
     private readonly List<GeometryInstance3D> _meshes = [];
     private readonly Node3D _bar;
@@ -106,17 +97,16 @@ internal sealed class FighterView
         Collect(body);
         SetTint(_aliveTint);
 
-        _lastActionSeen = fighter.LastActionTick;
-        _lastHealth = fighter.Health;
+        _cues = new FighterCues(fighter);
         _animation = FindAnimationPlayer(body);
         if (_animation != null)
         {
             foreach (var clip in _animation.GetAnimationList()) _clips.TryAdd(clip, clip);
             string owner = model != null ? System.IO.Path.GetFileNameWithoutExtension(model.ResourcePath) : "placeholder";
             _resolver = new AnimationResolver(owner, _clips.ContainsKey);
-            foreach (var name in Loops)
+            foreach (var name in FighterAnimation.Loops)
                 if (_clips.TryGetValue(name, out var clip)) _animation.GetAnimation(clip).LoopMode = Animation.LoopModeEnum.Linear;
-            if (playIntro && _clips.ContainsKey(Intro)) Play(Intro);
+            if (playIntro && _clips.ContainsKey(FighterAnimation.Intro)) Play(FighterAnimation.Intro);
             else if (Resolve(AnimationNames.Idle) is { } idle) Play(idle);
         }
 
@@ -167,7 +157,7 @@ internal sealed class FighterView
         }
         if (fighter.IsAlive) DetectOneShots(fighter, walking);
         UpdateFall(fighter.IsAlive || HasDeathClip, speed, delta);
-        if (fighter.IsAlive) UpdateAnimation(walking ? AnimationNames.Walk : ChooseAnimation(state.Run), speed);
+        if (fighter.IsAlive) UpdateAnimation(walking ? AnimationNames.Walk : FighterAnimation.Background(state.Run, _isHero, _clips.ContainsKey(FighterAnimation.LookAround)), speed);
         else UpdateDeath(speed);
 
         _bar.Visible = fighter.IsAlive;
@@ -196,25 +186,10 @@ internal sealed class FighterView
 
     // ── Animation ────────────────────────────────────────────────────────
 
-    /// <summary>L'animation de fond, hors attaque et coup reçu : un nom du catalogue, ou <see cref="LookAround"/>.</summary>
-    private string ChooseAnimation(RunState run)
-    {
-        if (!_isHero) return AnimationNames.Idle;
-        if (run.Phase == RunPhase.Fighting) return AnimationNames.Idle;
-        // Repos après une victoire : en route vers la zone suivante, ou on reste sur place.
-        if (run.LastOutcome == FightOutcome.Victory)
-            return run.AutoAdvance ? AnimationNames.Walk : _clips.ContainsKey(LookAround) ? LookAround : AnimationNames.Idle;
-        return AnimationNames.Idle;
-    }
-
     /// <summary>Lance l'attaque à chaque nouvelle action, le coup reçu quand la vie baisse.</summary>
     private void DetectOneShots(Entity fighter, bool walking)
     {
-        long health = fighter.Health;
-        bool acted = fighter.LastActionTick is { } action && action != _lastActionSeen;
-        bool hurt = health < _lastHealth;
-        _lastActionSeen = fighter.LastActionTick;
-        _lastHealth = health;
+        var (acted, hurt) = _cues.Observe(fighter);
         if (walking || _animation == null) return;
 
         // L'attaque l'emporte : un coup reçu n'interrompt pas un coup porté.
@@ -232,19 +207,19 @@ internal sealed class FighterView
         else _animation.Play(clip, BlendSeconds);
     }
 
-    /// <param name="wanted">Nom du catalogue (résolu ici, avec secours) ou <see cref="LookAround"/>.</param>
+    /// <param name="wanted">Nom du catalogue (résolu ici, avec secours) ou <see cref="FighterAnimation.LookAround"/>.</param>
     private void UpdateAnimation(string wanted, float speed)
     {
         if (_animation == null) return;
         _animation.SpeedScale = speed;
         // L'intro, puis une attaque ou un coup reçu, se jouent jusqu'au bout avant de céder la place.
-        if (_animation.IsPlaying() && _animation.CurrentAnimation == Intro) return;
+        if (_animation.IsPlaying() && _animation.CurrentAnimation == FighterAnimation.Intro) return;
         if (_oneShot != null)
         {
             if (_animation.IsPlaying() && _animation.CurrentAnimation == _oneShot) return;
             _oneShot = null;
         }
-        var clip = wanted == LookAround ? LookAround : Resolve(wanted);
+        var clip = wanted == FighterAnimation.LookAround ? FighterAnimation.LookAround : Resolve(wanted);
         if (clip != null && _animation.CurrentAnimation != clip) Play(clip);
     }
 

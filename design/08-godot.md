@@ -111,13 +111,16 @@ chemin `res://` passe par l'import de Godot. Le glTF est importé tel quel ; ses
 et les fichiers `.import` sont versionnés, le cache `.godot/` non.
 
 Le robot de test (`bake3d-robot-animated.glb`, CC BY 4.0, voir `CREDITS.md`) sert aux deux camps :
-taille réelle et teinte bleue pour l'équipe, réduit et teinté de rouge pour les monstres.
+taille réelle et teinte bleue pour l'équipe, réduit et teinté de rouge pour les monstres. La pile
+Skia montre le même robot, en planches de sprites tirées de ce glTF ([09](09-sprite-sheets.md)).
+Le choix de l'animation (fond, attaque, coup reçu) est commun aux deux piles : `FighterAnimation` et
+`FighterCues`, dans `Core.Presentation/Animation/`.
 
 | Situation | Animation |
 |---|---|
 | Arrivée de l'équipe (nouvelle partie, chargement) | `Intro`, jouée jusqu'au bout |
 | Combat | `Idle`, plus une fente vers l'adversaire à chaque action réellement faite (qui ne peut pas attaquer depuis sa ligne reste en `Idle`) ; l'attaque du catalogue (`attack_melee` pour le guerrier, `attack` pour un monstre) à chaque action, `hurt` quand la vie baisse |
-| Changement de place dans la formation (avancée, resserrement, retour en place après une défaite) | `Walk` pendant 1 s (`GameContent.MoveTicks`), tourné dans le sens de la marche ; côté Skia, un dandinement |
+| Changement de place dans la formation (avancée, resserrement, retour en place après une défaite) | `Walk` pendant 1 s (`GameContent.MoveTicks`), tourné dans le sens de la marche ; côté Skia, sprite retourné dans le sens de la marche |
 | Repos après une victoire, avance automatique | `Walk` |
 | Repos après une victoire, sans avance | `Look around` |
 | Mort | `death`, dernière image tenue ; sans ce clip, pose figée et chute à la renverse ; un monstre disparaît 1,2 s plus tard |

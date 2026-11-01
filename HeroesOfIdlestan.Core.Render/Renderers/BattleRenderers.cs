@@ -1,7 +1,9 @@
 using HeroesOfIdlestan.Core.Controller.Combat;
 using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Model.State;
+using HeroesOfIdlestan.Core.Presentation.Animation;
 using HeroesOfIdlestan.Core.Presentation.Battle;
+using HeroesOfIdlestan.Core.Render.Animation;
 using HeroesOfIdlestan.Core.Render.Rendering;
 using SkiaSharp;
 
@@ -75,24 +77,72 @@ public sealed class GroundRenderer : IGameRenderer
     }
 }
 
+
 /// <summary>
-/// Les combattants : un rond marqué de l'initiale de sa classe ou de son espèce (G : guerrier,
-/// R : rat, G sur fond vert : gobelin), sa barre de vie, une courte fente vers l'adversaire à
-/// chaque action, et une marche dandinée quand sa place change (<see cref="FighterWalk"/>).
+/// Les combattants : le robot en planches de sprites (<see cref="SpriteSheet"/>, tirées du modèle 3D
+/// de la version Godot par Tool.SpriteSheet), sa barre de vie, une courte fente vers l'adversaire à
+/// chaque action, la marche quand sa place change (<see cref="FighterWalk"/>), et la chute à sa mort.
+///
+/// <para>Mêmes règles que <c>FighterView</c> côté Godot : animations du catalogue avec secours
+/// (<see cref="AnimationResolver"/>), fond choisi par <see cref="FighterAnimation"/>, intro de
+/// l'équipe en début de partie, attaque à chaque action, coup reçu quand la vie baisse ; teinte de
+/// camp (bleue pour l'équipe, rouge pour les monstres, verte pour les gobelins), monstres réduits et
+/// tournés vers la gauche ; sans animation de mort, la pose se fige et le corps tombe à la renverse,
+/// et un monstre retiré du combat disparaît peu après.</para>
+///
+/// <para>Si les planches manquent, chaque combattant est un rond marqué de son initiale (G : guerrier,
+/// R : rat, G sur fond vert : gobelin), qui se dandine en marchant.</para>
 /// </summary>
 public sealed class FighterRenderer : IGameRenderer
 {
+    /// <summary>Jeu de planches des combattants, dans <c>assets/sprites/</c>.</summary>
+    public const string SpriteSheetId = "bake3d-robot-animated";
+
     /// <summary>Durée de la fente qui suit une action, en ticks de jeu.</summary>
     private const float LungeTicks = 20f;
     private const float LungeDistance = 14f;
-    /// <summary>Dandinement de la marche : écart latéral et gonflement à chaque pas.</summary>
+    /// <summary>Dandinement de la marche des ronds : écart latéral et gonflement à chaque pas.</summary>
     private const float SwayDistance = 4f;
     private const float StepSwell = 0.08f;
+    /// <summary>Hauteur d'un héros dessiné, en unités monde ; les monstres sont réduits comme sous Godot.</summary>
+    private const float HeroHeight = 72f;
+    private const float MonsterScale = 0.6f;
+    /// <summary>Chute ou relevé complet, en ticks de jeu.</summary>
+    private const float FallTicks = 0.4f * GameClock.TicksPerSecond;
+    /// <summary>Un monstre tué reste au sol ce temps-là (ticks de jeu) avant de disparaître.</summary>
+    private const long CorpseTicks = 6 * GameClock.TicksPerSecond / 5;
 
-    /// <summary>La marche de chaque combattant affiché ; ceux qui ne le sont plus en sortent.</summary>
-    private readonly Dictionary<Entity, FighterWalk> _walks = new(ReferenceEqualityComparer.Instance);
+    private static readonly SKColor HeroTint = new(0x40, 0x80, 0xD9, 0x1F);
+    private static readonly SKColor MonsterTint = new(0xCC, 0x40, 0x26, 0x4D);
+    private static readonly SKColor GoblinTint = new(0x4D, 0xB3, 0x33, 0x59);
+    private static readonly SKColor DeadTint = new(0x33, 0x33, 0x38, 0x99);
+
+    /// <summary>Ce que le renderer retient d'un combattant d'une frame à l'autre.</summary>
+    private sealed class Fighter(Entity entity, bool isHero, SpriteAnimator? animator)
+    {
+        public readonly Entity Entity = entity;
+        public readonly bool IsHero = isHero;
+        public readonly FighterWalk Walk = new();
+        public readonly FighterCues Cues = new(entity);
+        public readonly SpriteAnimator? Animator = animator;
+        public bool WasAlive = entity.IsAlive;
+        public float Fall;
+        public long LastTick;
+        /// <summary>Tick où le combattant a quitté la liste (monstre tué) ; null tant qu'il y est.</summary>
+        public long? GoneTick;
+        public bool FacingRight = isHero;
+        public SKPoint Home;
+    }
+
+    private readonly SpriteSheet? _sheet;
+    private readonly AnimationResolver? _resolver;
+    private readonly Dictionary<Entity, Fighter> _fighters = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<Entity> _seen = new(ReferenceEqualityComparer.Instance);
     private readonly List<Entity> _gone = [];
+    private readonly List<(float Y, Fighter Fighter)> _drawOrder = [];
+    /// <summary>Vrai jusqu'à la première frame d'une partie : l'équipe y joue son intro.</summary>
+    private bool _freshState = true;
+    private volatile bool _resetPending;
 
     private readonly SKPaint _heroFill = new() { Color = new SKColor(0x3F, 0x7C, 0xD6), IsAntialias = true };
     private readonly SKPaint _monsterFill = new() { Color = new SKColor(0xA8, 0x55, 0x3A), IsAntialias = true };
@@ -106,88 +156,224 @@ public sealed class FighterRenderer : IGameRenderer
     };
     private readonly SKPaint _barBack = new() { Color = new SKColor(0x10, 0x14, 0x1A, 0xC0), IsAntialias = true };
     private readonly SKPaint _barHealth = new() { Color = new SKColor(0x5C, 0xC8, 0x5C), IsAntialias = true };
+    private readonly SKPaint _shadow = new() { Color = new SKColor(0, 0, 0, 0x50), IsAntialias = true };
+    private readonly SKPaint _heroSprite = TintPaint(HeroTint);
+    private readonly SKPaint _monsterSprite = TintPaint(MonsterTint);
+    private readonly SKPaint _goblinSprite = TintPaint(GoblinTint);
+    private readonly SKPaint _deadSprite = TintPaint(DeadTint);
+
+    /// <param name="sheet">Planches des combattants ; null pour dessiner des ronds.</param>
+    public FighterRenderer(SpriteSheet? sheet)
+    {
+        _sheet = sheet;
+        if (sheet != null) _resolver = new AnimationResolver(sheet.Id, sheet.Data.Has);
+    }
+
+    /// <summary>Planches embarquées <see cref="SpriteSheetId"/>, ou des ronds si elles manquent.</summary>
+    public FighterRenderer() : this(SpriteSheet.LoadEmbedded(SpriteSheetId)) { }
+
+    /// <summary>Vrai si les combattants sont dessinés en sprites plutôt qu'en ronds.</summary>
+    public bool UsesSprites => _sheet != null;
+
+    /// <summary>Nouvelle partie ou chargement : tout repart de zéro à la frame suivante, sans chute.</summary>
+    public void Reset() => _resetPending = true;
 
     public void Render(SKCanvas canvas, FrameContext context)
     {
-        var state = context.State;
-        canvas.Save();
-        context.Camera.ApplyTo(canvas);
+        if (_resetPending)
+        {
+            _resetPending = false;
+            _fighters.Clear();
+            _freshState = true;
+        }
 
-        for (int i = 0; i < state.Heroes.Count; i++)
-            Draw(canvas, context, state.Heroes[i], state.Heroes, isHero: true);
-        for (int i = 0; i < state.Monsters.Count; i++)
-            Draw(canvas, context, state.Monsters[i], state.Monsters, isHero: false);
-
-        canvas.Restore();
-
-        _gone.Clear();
-        foreach (var fighter in _walks.Keys)
-            if (!_seen.Contains(fighter)) _gone.Add(fighter);
-        foreach (var fighter in _gone) _walks.Remove(fighter);
-        _seen.Clear();
-    }
-
-    private void Draw(SKCanvas canvas, FrameContext context, Entity fighter, IReadOnlyList<Entity> side, bool isHero)
-    {
         var state = context.State;
         long now = state.Clock.CurrentTick;
-        var place = BattleLayout.PositionOf(fighter, side, isHero);
 
-        // Un vivant marche vers sa place ; un mort reste là où il est tombé.
-        _seen.Add(fighter);
-        if (!_walks.TryGetValue(fighter, out var walk))
+        _seen.Clear();
+        _drawOrder.Clear();
+        Sync(state.Heroes, isHero: true, now);
+        Sync(state.Monsters, isHero: false, now);
+        _freshState = false;
+
+        // Un combattant qui quitte la liste (monstre tué) tombe là où il était avant de disparaître ;
+        // sans planches, il disparaît aussitôt.
+        _gone.Clear();
+        foreach (var (entity, fighter) in _fighters)
         {
-            if (place is not { } start) return;
-            _walks[fighter] = walk = new FighterWalk();
-            walk.Target(start.X, start.Y, now);
+            if (_seen.Contains(entity)) continue;
+            fighter.GoneTick ??= now;
+            if (_sheet == null || fighter.IsHero || now - fighter.GoneTick >= CorpseTicks || now < fighter.GoneTick)
+                _gone.Add(entity);
+            else
+                _drawOrder.Add((fighter.Home.Y, fighter));
         }
-        else if (!fighter.IsAlive)
-            walk.Halt(now);
-        else if (place is { } target)
-            walk.Target(target.X, target.Y, now);
+        foreach (var entity in _gone) _fighters.Remove(entity);
 
-        var (x, y) = walk.PositionAt(now);
-        var position = new SKPoint(x, y);
-        var stats = CombatSystem.Stats(state, fighter);
+        // Du fond vers l'avant : qui est plus bas à l'écran passe devant.
+        _drawOrder.Sort((a, b) => a.Y.CompareTo(b.Y));
+        canvas.Save();
+        context.Camera.ApplyTo(canvas);
+        foreach (var (_, fighter) in _drawOrder) Draw(canvas, state, fighter, now);
+        canvas.Restore();
+    }
+
+    private void Sync(IReadOnlyList<Entity> side, bool isHero, long now)
+    {
+        foreach (var entity in side)
+        {
+            _seen.Add(entity);
+            var place = BattleLayout.PositionOf(entity, side, isHero);
+            if (!_fighters.TryGetValue(entity, out var fighter))
+            {
+                if (place is null) continue;
+                var animator = _sheet != null ? new SpriteAnimator(_sheet, _resolver!, playIntro: isHero && _freshState, now) : null;
+                _fighters[entity] = fighter = new Fighter(entity, isHero, animator) { LastTick = now };
+            }
+            fighter.GoneTick = null;
+
+            // Un vivant marche vers sa place ; un mort reste là où il est tombé. La première fois (vue
+            // neuve, même d'un mort), il y est posé.
+            if (place is { } target && (entity.IsAlive || !fighter.Walk.IsPlaced))
+                fighter.Walk.Target(target.X, target.Y, now);
+            else if (!entity.IsAlive)
+                fighter.Walk.Halt(now);
+            var (x, y) = fighter.Walk.PositionAt(now);
+            fighter.Home = new SKPoint(x, y);
+            _drawOrder.Add((y, fighter));
+        }
+    }
+
+    private void Draw(SKCanvas canvas, GameState state, Fighter fighter, long now)
+    {
+        var entity = fighter.Entity;
+        bool alive = entity.IsAlive && fighter.GoneTick == null;
+        bool walking = alive && fighter.Walk.IsWalking(now);
+        var position = fighter.Home;
+
+        // Fente vers l'adversaire juste après une action, en ticks de jeu : elle suit pause et vitesse.
+        // Qui n'a rien pu faire (aucune action depuis sa ligne, personne à portée) reste au repos.
+        if (alive && entity.LastActionTick is { } lastAction)
+        {
+            long sinceAction = now - lastAction;
+            if (sinceAction >= 0 && sinceAction < LungeTicks)
+                position.X += (fighter.IsHero ? 1 : -1) * LungeDistance * (1 - sinceAction / LungeTicks);
+        }
+
+        float ratio = Math.Clamp(entity.Health / (float)CombatSystem.Stats(state, entity).MaxHealth, 0f, 1f);
+        if (fighter.Animator is { } animator) DrawSprite(canvas, state, fighter, animator, position, alive, walking, ratio, now);
+        else DrawCircle(canvas, fighter, position, alive, walking, ratio, now);
+        fighter.LastTick = now;
+    }
+
+    // ── Planches ────────────────────────────────────────────────────────
+
+    private void DrawSprite(SKCanvas canvas, GameState state, Fighter fighter, SpriteAnimator animator,
+        SKPoint position, bool alive, bool walking, float healthRatio, long now)
+    {
+        var entity = fighter.Entity;
+        var sheet = _sheet!;
+
+        if (alive != fighter.WasAlive)
+        {
+            fighter.WasAlive = alive;
+            if (alive) animator.Revive();
+            else animator.Die(now);
+        }
+        if (alive)
+        {
+            var (acted, hurt) = fighter.Cues.Observe(entity);
+            // L'attaque l'emporte : un coup reçu n'interrompt pas un coup porté.
+            if (!walking && acted) animator.StartOneShot(AnimationCatalog.AttackFor(entity), now);
+            else if (!walking && hurt && !animator.InOneShot) animator.StartOneShot(AnimationNames.Hurt, now);
+        }
+
+        // En marche, le corps regarde où il va ; arrivé, il refait face à l'adversaire.
+        var (hx, _) = fighter.Walk.Heading;
+        fighter.FacingRight = walking && MathF.Abs(hx) > 0.5f ? hx > 0 : fighter.IsHero;
+
+        // Chute à la renverse quand il n'y a pas d'animation de mort ; relevé dans l'autre sens.
+        float step = Math.Max(0, now - fighter.LastTick) / FallTicks;
+        bool standing = alive || animator.HasDeathClip;
+        fighter.Fall = Math.Clamp(fighter.Fall + (standing ? -step : step), 0f, 1f);
+
+        string background = walking
+            ? AnimationNames.Walk
+            : FighterAnimation.Background(state.Run, fighter.IsHero, sheet.Data.Has(FighterAnimation.LookAround));
+        if (animator.Frame(background, now) is not var (clip, frame)) return;
+
+        float height = HeroHeight * (fighter.IsHero ? 1f : MonsterScale);
+        float scale = height / sheet.Data.FrameHeight;
+        // Les pieds un peu sous le centre de la case : le corps est centré sur sa place.
+        var feet = new SKPoint(position.X, position.Y + height * 0.5f);
+
+        canvas.DrawOval(feet, new SKSize(height * 0.22f * (1 - fighter.Fall * 0.3f), height * 0.06f), _shadow);
+
+        canvas.Save();
+        canvas.Translate(feet);
+        float fall = 90f * SmoothStep(fighter.Fall);
+        canvas.RotateDegrees(fighter.IsHero ? -fall : fall); // loin de l'adversaire
+        if (!fighter.FacingRight) canvas.Scale(-1, 1);
+        var paint = entity switch
+        {
+            _ when !alive => _deadSprite,
+            HeroEntity => _heroSprite,
+            MonsterEntity { Species: MonsterSpecies.Goblin } => _goblinSprite,
+            _ => _monsterSprite,
+        };
+        sheet.Draw(canvas, clip, frame, scale, paint);
+        canvas.Restore();
+
+        if (alive) DrawHealthBar(canvas, new SKPoint(feet.X, feet.Y - height - 10), height * 0.6f, healthRatio);
+    }
+
+    private static float SmoothStep(float t) => t * t * (3 - 2 * t);
+
+    /// <summary>Teinte de camp posée par-dessus l'image, sans toucher à sa transparence.</summary>
+    private static SKPaint TintPaint(SKColor tint) => new()
+    {
+        IsAntialias = true,
+        ColorFilter = SKColorFilter.CreateBlendMode(tint, SKBlendMode.SrcATop),
+    };
+
+    private void DrawHealthBar(SKCanvas canvas, SKPoint center, float width, float ratio)
+    {
+        const float height = 6;
+        var bar = SKRect.Create(center.X - width / 2, center.Y - height / 2, width, height);
+        canvas.DrawRect(bar, _barBack);
+        canvas.DrawRect(SKRect.Create(bar.Left, bar.Top, width * ratio, height), _barHealth);
+    }
+
+    // ── Ronds (sans planches) ───────────────────────────────────────────
+
+    private void DrawCircle(SKCanvas canvas, Fighter fighter, SKPoint position, bool alive, bool walking, float healthRatio, long now)
+    {
+        var entity = fighter.Entity;
         float r = BattleLayout.FighterRadius;
 
-        if (fighter.IsAlive && walk.IsWalking(now))
+        if (walking)
         {
             // Un pas = un balancement d'un côté puis de l'autre, perpendiculaire à la marche.
-            var (hx, hy) = walk.Heading;
+            var (hx, hy) = fighter.Walk.Heading;
             float length = MathF.Sqrt(hx * hx + hy * hy);
-            float swing = MathF.Sin(2 * MathF.PI * walk.StepPhase(now));
+            float swing = MathF.Sin(2 * MathF.PI * fighter.Walk.StepPhase(now));
             position.X += -hy / length * SwayDistance * swing;
             position.Y += hx / length * SwayDistance * swing;
             r *= 1 + StepSwell * MathF.Abs(swing);
         }
 
-        // Fente vers l'adversaire juste après une action, en ticks de jeu : elle suit pause et vitesse.
-        // Qui n'a rien pu faire (aucune action depuis sa ligne, personne à portée) reste au repos.
-        if (fighter.IsAlive && fighter.LastActionTick is { } lastAction)
+        var fill = entity switch
         {
-            long sinceAction = state.Clock.CurrentTick - lastAction;
-            if (sinceAction >= 0 && sinceAction < LungeTicks)
-                position.X += (isHero ? 1 : -1) * LungeDistance * (1 - sinceAction / LungeTicks);
-        }
-
-        var fill = fighter switch
-        {
-            { IsAlive: false } => _deadFill,
+            _ when !alive => _deadFill,
             HeroEntity => _heroFill,
             MonsterEntity { Species: MonsterSpecies.Goblin } => _goblinFill,
             _ => _monsterFill,
         };
         canvas.DrawCircle(position, r, fill);
         canvas.DrawCircle(position, r, _outline);
-        DrawLetter(canvas, Initial(fighter), position, r * 0.5f);
+        DrawLetter(canvas, Initial(entity), position, r * 0.5f);
 
-        if (!fighter.IsAlive) return;
-        float width = r * 2, height = 6;
-        var bar = SKRect.Create(position.X - r, position.Y - r - 14, width, height);
-        float ratio = Math.Clamp(fighter.Health / (float)stats.MaxHealth, 0f, 1f);
-        canvas.DrawRect(bar, _barBack);
-        canvas.DrawRect(SKRect.Create(bar.Left, bar.Top, width * ratio, height), _barHealth);
+        if (alive) DrawHealthBar(canvas, new SKPoint(position.X, position.Y - r - 11), r * 2, healthRatio);
     }
 
     private static char Initial(Entity fighter) => fighter switch
@@ -237,6 +423,13 @@ public sealed class FighterRenderer : IGameRenderer
 
     public void Dispose()
     {
+        _sheet?.Dispose();
+        _shadow.Dispose();
+        foreach (var paint in new[] { _heroSprite, _monsterSprite, _goblinSprite, _deadSprite })
+        {
+            paint.ColorFilter?.Dispose();
+            paint.Dispose();
+        }
         _heroFill.Dispose();
         _monsterFill.Dispose();
         _goblinFill.Dispose();
