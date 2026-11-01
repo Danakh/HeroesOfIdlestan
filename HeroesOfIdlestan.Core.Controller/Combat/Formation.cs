@@ -54,11 +54,16 @@ public static class Formation
     /// celui dont la ligne préférée est la ligne à combler, puis le plus haut. Son départ laisse à son
     /// tour un trou dans sa ligne : on répète, ligne par ligne, jusqu'à une formation valide.
     ///
-    /// <para>Sans trou connu (<paramref name="hole"/> null : formation chargée, début de combat),
-    /// tous les combattants de la ligne de derrière sont candidats, et l'arrivant prend le centre.</para>
+    /// <para>Sans trou connu (<paramref name="hole"/> null : formation chargée, début de combat,
+    /// arrivée d'un marcheur), tous les combattants de la ligne de derrière sont candidats, et
+    /// l'arrivant prend le centre.</para>
+    ///
+    /// <para>Un combattant encore en marche au tick <paramref name="tick"/> (<see cref="Entity.ArrivalTick"/>)
+    /// n'est pas candidat : un mouvement ne franchit qu'une ligne. Faute de candidat, la ligne reste
+    /// incomplète ; le prochain appel, à l'arrivée du marcheur, la complète.</para>
     /// </summary>
     /// <returns>Les combattants qui ont avancé, dans l'ordre.</returns>
-    public static List<Entity> Settle(IReadOnlyList<Entity> side, int fromLine = 1, int? hole = null)
+    public static List<Entity> Settle(IReadOnlyList<Entity> side, int fromLine = 1, int? hole = null, long tick = 0)
     {
         var advanced = new List<Entity>();
         for (int line = Math.Max(1, fromLine); line < DeepestLine(side); line++)
@@ -70,7 +75,8 @@ public static class Formation
             while (back.Count > 0 && front.Count <= back.Count)
             {
                 int slot = Math.Clamp(hole ?? front.Count / 2, 0, front.Count);
-                int from = PickAdvancer(back, line, hole.HasValue ? slot : null);
+                int from = PickAdvancer(back, line, hole.HasValue ? slot : null, tick);
+                if (from < 0) break; // tous en marche : la ligne attend leur arrivée
                 var advancer = back[from];
 
                 advancer.Line = line;
@@ -92,9 +98,10 @@ public static class Formation
     /// <summary>
     /// Index, dans <paramref name="back"/>, du combattant qui avance en ligne <paramref name="line"/>.
     /// Derrière un trou d'une ligne en quinconce, seuls les un ou deux combattants adjacents au trou
-    /// sont candidats (indices <c>slot − 1</c> et <c>slot</c>).
+    /// sont candidats (indices <c>slot − 1</c> et <c>slot</c>). Ceux encore en marche au tick
+    /// <paramref name="tick"/> sont écartés ; −1 s'il ne reste personne.
     /// </summary>
-    private static int PickAdvancer(List<Entity> back, int line, int? slot)
+    private static int PickAdvancer(List<Entity> back, int line, int? slot, long tick)
     {
         int first = 0, last = back.Count - 1;
         if (slot is { } s)
@@ -102,9 +109,14 @@ public static class Formation
             first = Math.Clamp(s - 1, 0, back.Count - 1);
             last = Math.Clamp(s, 0, back.Count - 1);
         }
+        int fallback = -1;
         for (int i = first; i <= last; i++)
+        {
+            if (back[i].ArrivalTick > tick) continue;
             if (back[i].PreferredLine == line) return i;
-        return first;
+            if (fallback < 0) fallback = i;
+        }
+        return fallback;
     }
 
     private static int DeepestLine(IReadOnlyList<Entity> side)

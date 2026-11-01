@@ -37,7 +37,15 @@ public sealed class CombatSystem : ISimulationSystem
                 continue;
             }
 
+            // À égalité de tick, l'arrivée d'un marcheur passe avant les actions.
             var actor = NextActor(state);
+            var walker = NextArrival(state);
+            if (walker != null && walker.ArrivalTick <= context.CurrentTick
+                && (actor == null || walker.ArrivalTick <= actor.NextActionTick))
+            {
+                Arrive(state, walker);
+                continue;
+            }
             if (actor == null || actor.NextActionTick > context.CurrentTick) return;
             Act(state, actor, context.Modifiers);
         }
@@ -60,7 +68,10 @@ public sealed class CombatSystem : ISimulationSystem
             monster.NextActionTick = tick + stats.CooldownTicks;
         }
         foreach (var hero in state.Heroes)
+        {
+            hero.ArrivalTick = 0;
             if (hero.IsAlive) hero.NextActionTick = tick + Stats(state, hero).CooldownTicks;
+        }
         // Les groupes du contenu sont des pyramides valides ; une sauvegarde éditée à la main, peut-être pas.
         Formation.Settle(state.Heroes);
         Formation.Settle(state.Monsters);
@@ -126,8 +137,39 @@ public sealed class CombatSystem : ISimulationSystem
     {
         int hole = Formation.HoleOf(side, fallen);
         if (fallen is MonsterEntity monster) state.Monsters.Remove(monster);
-        foreach (var advancer in Formation.Settle(side, fallen.Line, hole))
-            advancer.NextActionTick = Math.Max(advancer.NextActionTick, tick + GameContent.MoveTicks);
+        StartWalks(Formation.Settle(side, fallen.Line, hole, tick), tick);
+    }
+
+    /// <summary>
+    /// Arrivée d'un marcheur : il redevient candidat pour avancer, et la ligne qui attendait faute de
+    /// candidat libre (<see cref="Formation.Settle"/>) se complète maintenant.
+    /// </summary>
+    private static void Arrive(GameState state, Entity walker)
+    {
+        long tick = walker.ArrivalTick;
+        walker.ArrivalTick = 0;
+        IReadOnlyList<Entity> side = walker is HeroEntity ? state.Heroes : state.Monsters;
+        StartWalks(Formation.Settle(side, tick: tick), tick);
+    }
+
+    /// <summary>Ceux qui avancent marchent jusqu'à leur nouvelle place et n'agissent qu'une fois arrivés.</summary>
+    private static void StartWalks(List<Entity> advancers, long tick)
+    {
+        foreach (var advancer in advancers)
+        {
+            advancer.ArrivalTick = tick + GameContent.MoveTicks;
+            advancer.NextActionTick = Math.Max(advancer.NextActionTick, advancer.ArrivalTick);
+        }
+    }
+
+    /// <summary>Le prochain marcheur vivant à arriver ; null si personne ne marche.</summary>
+    private static Entity? NextArrival(GameState state)
+    {
+        Entity? next = null;
+        foreach (var fighter in state.Heroes.Concat<Entity>(state.Monsters))
+            if (fighter.IsAlive && fighter.ArrivalTick > 0 && (next == null || fighter.ArrivalTick < next.ArrivalTick))
+                next = fighter;
+        return next;
     }
 
     private static bool IsFightOver(GameState state) =>

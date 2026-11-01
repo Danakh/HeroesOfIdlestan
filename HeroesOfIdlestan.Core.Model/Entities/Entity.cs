@@ -61,6 +61,13 @@ public abstract class Entity
     public long NextActionTick { get; set; }
 
     /// <summary>
+    /// Tick où le combattant, parti combler un trou, arrive à sa nouvelle ligne ; 0 s'il est en place.
+    /// En marche, il ne peut pas être désigné pour avancer encore : un mouvement ne franchit qu'une
+    /// ligne (GDD §3.2). Persisté, comme <see cref="NextActionTick"/>.
+    /// </summary>
+    public long ArrivalTick { get; set; }
+
+    /// <summary>
     /// Tick de la dernière action réellement faite (une cible touchée) ; null si aucune. Un combattant
     /// sans action possible depuis sa ligne, ou sans personne à portée, ne fait rien (GDD §5.1) : le
     /// rendu ne lui joue donc aucune attaque.

@@ -259,10 +259,42 @@ public class CombatLoopTests
         {
             c.SimulateTicks(GameClock.TicksPerSecond / 4);
             if (c.State.Run.Phase != RunPhase.Fighting) continue;
-            AssertPyramid(c.State.Heroes);
-            AssertPyramid(c.State.Monsters);
+            // Une ligne peut attendre qu'un marcheur arrive pour se compléter.
+            long now = c.State.Clock.CurrentTick;
+            if (!c.State.Heroes.Any(h => h.IsAlive && h.ArrivalTick > now)) AssertPyramid(c.State.Heroes);
+            if (!c.State.Monsters.Any(m => m.IsAlive && m.ArrivalTick > now)) AssertPyramid(c.State.Monsters);
         }
         Assert.Contains(c.State.Heroes, h => h.Line < h.FormationLine);
+    }
+
+    [Fact]
+    public void AnAdvancer_MovesOneLinePerWalk()
+    {
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var c = new GameController();
+            c.NewDebugGame(seed: seed);
+            var lines = new Dictionary<Entity, int>();
+            var moved = new Dictionary<Entity, long>();
+            for (int i = 0; i < 120 * GameClock.TicksPerSecond; i++)
+            {
+                c.SimulateTicks(1);
+                if (c.State.Run.Phase != RunPhase.Fighting) { lines.Clear(); moved.Clear(); continue; }
+                foreach (var f in c.State.Heroes.Cast<Entity>().Concat(c.State.Monsters))
+                {
+                    if (!f.IsAlive) continue;
+                    if (lines.TryGetValue(f, out int line) && line != f.Line)
+                    {
+                        long now = c.State.Clock.CurrentTick;
+                        Assert.True(line - f.Line == 1, $"seed {seed} : {line} -> {f.Line} d'un coup.");
+                        if (moved.TryGetValue(f, out long last))
+                            Assert.True(now - last >= GameContent.MoveTicks, $"seed {seed} : deux lignes en {now - last} ticks.");
+                        moved[f] = now;
+                    }
+                    lines[f] = f.Line;
+                }
+            }
+        }
     }
 
     [Fact]
