@@ -106,6 +106,17 @@ public sealed class CombatSystem : ISimulationSystem
         var stats = Stats(state, actor);
         actor.NextActionTick = tick + stats.CooldownTicks;
 
+        // Un déplacement demandé par le joueur prend ce cycle : il marche vers sa place au lieu d'agir.
+        if (actor is HeroEntity mover && FormationOrders.Take(state, mover) is { } move)
+        {
+            var moved = FormationOrders.Execute(state, move, tick);
+            if (moved.Count > 0)
+            {
+                StartWalks(moved, tick);
+                return;
+            }
+        }
+
         bool isHero = actor is HeroEntity;
         IReadOnlyList<Entity> allies = isHero ? state.Heroes : state.Monsters;
         IReadOnlyList<Entity> enemies = isHero ? state.Monsters : state.Heroes;
@@ -140,6 +151,7 @@ public sealed class CombatSystem : ISimulationSystem
         var holes = HolesOf(state, fallen);
         Formation.Fall(side, holes, fallen);
         if (fallen is MonsterEntity monster) state.Monsters.Remove(monster);
+        if (fallen is HeroEntity hero) FormationOrders.Forget(state, state.Heroes.IndexOf(hero));
         StartWalks(Formation.Settle(side, holes, tick), tick);
     }
 
@@ -250,11 +262,18 @@ public sealed class CombatSystem : ISimulationSystem
             if (run.LastOutcome == FightOutcome.Defeat)
             {
                 hero.Line = hero.FormationLine;
-                hero.Rank = 0;
+                hero.Rank = hero.FormationRank;
                 state.HeroHoles.Clear();
             }
             if (hero.IsAlive || run.LastOutcome == FightOutcome.Defeat)
                 hero.Health = Stats(state, hero).MaxHealth;
+        }
+
+        // Les déplacements demandés pendant le repos se font avant le combat suivant.
+        foreach (var move in state.FormationMoves.ToList())
+        {
+            state.FormationMoves.Remove(move);
+            FormationOrders.Execute(state, move, tick);
         }
 
         StartFight(state, tick);

@@ -10,8 +10,6 @@
   "ui_new_game": "Nouvelle partie",
   "event_achievement_unlocked": "Succès obtenu : {0}",
   "ui_zone": "Zone {0} (record {1})",
-  "ui_warrior_level": "Guerrier niv. {0} — XP {1}/{2}",
-  "ui_warrior_level_max": "Guerrier niv. {0} (max)",
   "ui_auto_advance_on": "Avance auto : activée",
   "ui_auto_advance_off": "Avance auto : coupée",
   "event_fight_won": "Zone {0} gagnée",
@@ -23,5 +21,12 @@
   "ui_log": "Log ({0})",
   "ui_log_warning": "Avert.",
   "ui_log_error": "Erreur",
-  "ui_log_empty": "Journal vide."
+  "ui_log_empty": "Journal vide.",
+  "ui_hero_level": "{0} niv. {1} — XP {2}/{3}",
+  "ui_hero_level_max": "{0} niv. {1} (max)",
+  "ui_recruit": "Recruter {0} ({1} or)",
+  "class_warrior": "Guerrier",
+  "class_rogue": "Voleur",
+  "class_mage": "Mage",
+  "event_hero_recruited": "Recrue : {0}"
 }

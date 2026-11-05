@@ -3,6 +3,7 @@ using HeroesOfIdlestan.Core.Controller;
 using HeroesOfIdlestan.Core.Controller.Content;
 using HeroesOfIdlestan.Core.Controller.Platform;
 using HeroesOfIdlestan.Core.Model.Diagnostics;
+using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Model.Localization;
 using HeroesOfIdlestan.Core.Model.Persistence;
 using HeroesOfIdlestan.Core.Model.Platform;
@@ -197,6 +198,13 @@ public sealed class GameSession : IDisposable
 
     public void ToggleSound() => Audio.Enabled = !Audio.Enabled;
 
+    /// <summary>Recrute un personnage de cette classe si l'or suffit (GDD §6.4).</summary>
+    public void Recruit(HeroClass heroClass)
+    {
+        if (InMenu) return;
+        Game.Recruit(heroClass);
+    }
+
     // ── Lecture ──────────────────────────────────────────────────────────
 
     public MenuSnapshot GetMenuSnapshot() => new(InMenu, _hasSavedGame);
@@ -204,7 +212,7 @@ public sealed class GameSession : IDisposable
     public HudSnapshot GetHudSnapshot()
     {
         var s = Game.State;
-        // Une seule ligne de héros dans le HUD tant que l'équipe se limite au personnage de départ.
+        // Le HUD suit le personnage de départ ; les recrues se lisent sur le champ de bataille.
         var lead = s.Heroes.Count > 0 ? s.Heroes[0] : null;
         int level = lead?.Level ?? 0;
         return new HudSnapshot(
@@ -215,9 +223,12 @@ public sealed class GameSession : IDisposable
             s.Run.Zone,
             s.Run.HighestZone,
             s.Run.AutoAdvance,
+            lead?.Class.ToString() ?? "",
             level,
             lead?.Xp ?? 0,
             level is > 0 and < GameContent.MaxLevel ? GameContent.XpToNextLevel(level) : 0,
+            s.Heroes.Count,
+            Game.RecruitCost,
             Audio.IsAvailable,
             Audio.Enabled);
     }

@@ -1,10 +1,12 @@
 using Godot;
+using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Godot.Views;
 
 /// <summary>
-/// Barre du haut. La mise en page vit dans une scène éditée dans Godot (<see cref="ScenePath"/>) ;
+/// Barre du haut, avec la rangée de recrutement (<c>%RecruitWarrior</c>, <c>%RecruitRogue</c>,
+/// <c>%RecruitMage</c>, actifs quand l'or suffit). La mise en page vit dans une scène éditée dans Godot (<see cref="ScenePath"/>) ;
 /// cette classe l'instancie et la relie à <see cref="HudViewModel"/> (contrat : <see cref="SceneView"/>).
 /// Le bouton « Log » clignote tant qu'un message du journal n'a pas été vu, et déplie le journal
 /// (<c>%LogPanel</c>) sous la barre.
@@ -39,7 +41,18 @@ public sealed class HudView : SceneView
         Bind(nameof(HudViewModel.LogOpen), () => logPanel.Visible = viewModel.LogOpen);
         BindText(Node<Label>("LogText"), nameof(HudViewModel.LogText), () => viewModel.LogText);
 
+        BindRecruit(Node<Button>("RecruitWarrior"), viewModel, HeroClass.Warrior, nameof(HudViewModel.RecruitWarriorLabel), () => viewModel.RecruitWarriorLabel);
+        BindRecruit(Node<Button>("RecruitRogue"), viewModel, HeroClass.Rogue, nameof(HudViewModel.RecruitRogueLabel), () => viewModel.RecruitRogueLabel);
+        BindRecruit(Node<Button>("RecruitMage"), viewModel, HeroClass.Mage, nameof(HudViewModel.RecruitMageLabel), () => viewModel.RecruitMageLabel);
+
         foreach (var speed in new[] { 1, 3, 10 })
             Node<Button>($"Speed{speed}").Pressed += () => viewModel.SetSpeed(speed);
+    }
+
+    /// <summary>Un bouton de recrutement : son libellé (classe et prix), actif quand l'or suffit.</summary>
+    private void BindRecruit(Button button, HudViewModel viewModel, HeroClass heroClass, string property, Func<string> text)
+    {
+        BindButton(button, property, text, () => viewModel.Recruit(heroClass));
+        Bind(nameof(HudViewModel.CanRecruit), () => button.Disabled = !viewModel.CanRecruit);
     }
 }

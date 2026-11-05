@@ -47,10 +47,16 @@ public static class AnimationCatalog
         _ => AnimationNames.Idle,
     };
 
-    /// <summary>L'attaque d'un combattant, selon son arme. Les monstres jouent l'attaque de base.</summary>
+    /// <summary>
+    /// L'attaque d'un combattant, selon son arme : le Voleur se bat au corps à corps en ligne 1 et
+    /// lance ses couteaux derrière (animation de tir). Les monstres jouent l'attaque de base.
+    /// </summary>
     public static string AttackFor(Entity fighter) => fighter switch
     {
         HeroEntity { Class: HeroClass.Warrior } => AnimationNames.AttackMelee,
+        HeroEntity { Class: HeroClass.Rogue, Line: 1 } => AnimationNames.AttackMelee,
+        HeroEntity { Class: HeroClass.Rogue } => AnimationNames.AttackBow,
+        HeroEntity { Class: HeroClass.Mage } => AnimationNames.AttackMagic,
         _ => AnimationNames.Attack,
     };
 }

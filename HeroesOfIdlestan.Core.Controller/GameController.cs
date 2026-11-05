@@ -4,6 +4,7 @@ using HeroesOfIdlestan.Core.Controller.Meta;
 using HeroesOfIdlestan.Core.Controller.Modifiers;
 using HeroesOfIdlestan.Core.Controller.Simulation;
 using HeroesOfIdlestan.Core.Model.Entities;
+using HeroesOfIdlestan.Core.Model.Meta;
 using HeroesOfIdlestan.Core.Model.Persistence;
 using HeroesOfIdlestan.Core.Model.State;
 
@@ -134,4 +135,32 @@ public sealed class GameController
 
     /// <summary>Active ou coupe l'avance automatique (GDD §2). Coupée, l'équipe rejoue sa zone en boucle.</summary>
     public void SetAutoAdvance(bool enabled) => State.Run.AutoAdvance = enabled;
+
+    /// <summary>Prix de la prochaine recrue (GDD §6.4).</summary>
+    public long RecruitCost => GameContent.RecruitCost(State.Heroes.Count);
+
+    /// <summary>
+    /// Recrute un personnage de la classe <paramref name="heroClass"/> contre de l'or. Le GDD réserve
+    /// le recrutement à l'entre-deux-runs ; tant que le prestige n'existe pas, il se fait en cours de
+    /// run. Faux si l'or manque ou si aucune partie n'est en cours.
+    /// </summary>
+    public bool Recruit(HeroClass heroClass)
+    {
+        if (State.Heroes.Count == 0) return false;
+        long cost = RecruitCost;
+        if (State.Gold < cost) return false;
+        State.Gold = State.Gold - cost;
+        FormationOrders.Recruit(State, heroClass, State.Clock.CurrentTick);
+        State.Events.Add(new GameEvent(State.Clock.CurrentTick, "hero_recruited", heroClass.ToString()));
+        return true;
+    }
+
+    /// <summary>
+    /// Glisser-déposer : le personnage d'indice <paramref name="hero"/> ira sur <paramref name="target"/>
+    /// à son prochain cycle d'action. Faux si la place n'est pas proposée (<see cref="FormationOrders.DropTargets"/>).
+    /// </summary>
+    public bool OrderFormationMove(int hero, FormationTarget target) => FormationOrders.Order(State, hero, target);
+
+    /// <summary>Annule le déplacement demandé pour le personnage <paramref name="hero"/>.</summary>
+    public void CancelFormationMove(int hero) => FormationOrders.Cancel(State, hero);
 }

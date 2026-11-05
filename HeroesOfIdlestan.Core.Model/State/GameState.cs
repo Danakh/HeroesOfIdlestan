@@ -47,6 +47,12 @@ public sealed class GameState
     /// <summary>Places réservées dans la formation des monstres, en attendant que quelqu'un avance (GDD §3.2).</summary>
     public List<FormationHole> MonsterHoles { get; set; } = [];
 
+    /// <summary>
+    /// Déplacements demandés par le joueur (glisser-déposer), au plus un par personnage : chacun
+    /// s'exécute au prochain cycle d'action du personnage, à la place de son action.
+    /// </summary>
+    public List<FormationMove> FormationMoves { get; set; } = [];
+
     // ── Méta ─────────────────────────────────────────────────────────────
 
     public GameEventLog Events { get; set; } = new();

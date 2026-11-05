@@ -28,11 +28,12 @@ public static class BattleLayout
 
     /// <summary>
     /// Le champ de bataille, agrandi en hauteur pour tenir la ligne la plus longue des deux camps
-    /// (5 combattants de front en partie de debug).
+    /// (5 combattants de front en partie de debug), plus une place côté équipe : celle proposée au
+    /// bout d'une ligne pendant un glisser-déposer.
     /// </summary>
     public static SKRect BoundsFor(GameState state)
     {
-        int widest = Math.Max(Formation.WidestLine(state.Heroes, state.HeroHoles), Formation.WidestLine(state.Monsters, state.MonsterHoles));
+        int widest = Math.Max(Formation.WidestLine(state.Heroes, state.HeroHoles) + 1, Formation.WidestLine(state.Monsters, state.MonsterHoles));
         float halfHeight = Math.Max(-Bounds.Top, (widest - 1) * HalfSlot + FighterRadius + 40f);
         return SKRect.Create(Bounds.Left, -halfHeight, Bounds.Width, 2 * halfHeight);
     }
@@ -42,11 +43,20 @@ public static class BattleLayout
     {
         // Les places de la ligne, trous réservés compris : un mort reste dessiné là où il est tombé.
         if (Formation.Place(fighter, side, holes) is not (int index, int count)) return null;
+        return SlotPosition(fighter.Line, index, count, isHero);
+    }
 
-        float x = FrontOffset + (fighter.Line - 1) * LineSpacing;
+    /// <summary>Position de la place <paramref name="index"/> parmi <paramref name="count"/> d'une ligne.</summary>
+    public static SKPoint SlotPosition(int line, int index, int count, bool isHero)
+    {
+        float x = FrontOffset + (line - 1) * LineSpacing;
         float y = Formation.HalfPosition(index, count) * HalfSlot;
         return new SKPoint(isHero ? -x : x, y);
     }
+
+    /// <summary>Position d'une place proposée au glisser-déposer.</summary>
+    public static SKPoint TargetPosition(FormationTarget target) =>
+        SlotPosition(target.Line, target.Index, target.Count, isHero: true);
 }
 
 /// <summary>Le sol du champ de bataille, en coordonnées monde — rend aussi le pan et le zoom visibles.</summary>
@@ -85,8 +95,11 @@ public sealed class GroundRenderer : IGameRenderer
 /// tournés vers la gauche ; sans animation de mort, la pose se fige et le corps tombe à la renverse,
 /// et un monstre retiré du combat disparaît peu après.</para>
 ///
+/// <para>Teinte des héros selon la classe : bleue pour le guerrier, ambre pour le voleur, violette
+/// pour le mage.</para>
+///
 /// <para>Si les planches manquent, chaque combattant est un rond marqué de son initiale (G : guerrier,
-/// R : rat, G sur fond vert : gobelin), qui se dandine en marchant.</para>
+/// V : voleur, M : mage, R : rat, G sur fond vert : gobelin), qui se dandine en marchant.</para>
 /// </summary>
 public sealed class FighterRenderer : IGameRenderer
 {
@@ -108,6 +121,8 @@ public sealed class FighterRenderer : IGameRenderer
     private const long CorpseTicks = 6 * GameClock.TicksPerSecond / 5;
 
     private static readonly SKColor HeroTint = new(0x40, 0x80, 0xD9, 0x1F);
+    private static readonly SKColor RogueTint = new(0xD9, 0xA6, 0x26, 0x47);
+    private static readonly SKColor MageTint = new(0x99, 0x4D, 0xE6, 0x52);
     private static readonly SKColor MonsterTint = new(0xCC, 0x40, 0x26, 0x4D);
     private static readonly SKColor GoblinTint = new(0x4D, 0xB3, 0x33, 0x59);
     private static readonly SKColor DeadTint = new(0x33, 0x33, 0x38, 0x99);
@@ -140,6 +155,8 @@ public sealed class FighterRenderer : IGameRenderer
     private volatile bool _resetPending;
 
     private readonly SKPaint _heroFill = new() { Color = new SKColor(0x3F, 0x7C, 0xD6), IsAntialias = true };
+    private readonly SKPaint _rogueFill = new() { Color = new SKColor(0xB8, 0x8A, 0x22), IsAntialias = true };
+    private readonly SKPaint _mageFill = new() { Color = new SKColor(0x7E, 0x48, 0xC4), IsAntialias = true };
     private readonly SKPaint _monsterFill = new() { Color = new SKColor(0xA8, 0x55, 0x3A), IsAntialias = true };
     private readonly SKPaint _goblinFill = new() { Color = new SKColor(0x4E, 0x8A, 0x3A), IsAntialias = true };
     private readonly SKPaint _deadFill = new() { Color = new SKColor(0x55, 0x5A, 0x60, 0x90), IsAntialias = true };
@@ -153,6 +170,8 @@ public sealed class FighterRenderer : IGameRenderer
     private readonly SKPaint _barHealth = new() { Color = new SKColor(0x5C, 0xC8, 0x5C), IsAntialias = true };
     private readonly SKPaint _shadow = new() { Color = new SKColor(0, 0, 0, 0x50), IsAntialias = true };
     private readonly SKPaint _heroSprite = TintPaint(HeroTint);
+    private readonly SKPaint _rogueSprite = TintPaint(RogueTint);
+    private readonly SKPaint _mageSprite = TintPaint(MageTint);
     private readonly SKPaint _monsterSprite = TintPaint(MonsterTint);
     private readonly SKPaint _goblinSprite = TintPaint(GoblinTint);
     private readonly SKPaint _deadSprite = TintPaint(DeadTint);
@@ -312,6 +331,8 @@ public sealed class FighterRenderer : IGameRenderer
         var paint = entity switch
         {
             _ when !alive => _deadSprite,
+            HeroEntity { Class: HeroClass.Rogue } => _rogueSprite,
+            HeroEntity { Class: HeroClass.Mage } => _mageSprite,
             HeroEntity => _heroSprite,
             MonsterEntity { Species: MonsterSpecies.Goblin } => _goblinSprite,
             _ => _monsterSprite,
@@ -360,6 +381,8 @@ public sealed class FighterRenderer : IGameRenderer
         var fill = entity switch
         {
             _ when !alive => _deadFill,
+            HeroEntity { Class: HeroClass.Rogue } => _rogueFill,
+            HeroEntity { Class: HeroClass.Mage } => _mageFill,
             HeroEntity => _heroFill,
             MonsterEntity { Species: MonsterSpecies.Goblin } => _goblinFill,
             _ => _monsterFill,
@@ -374,6 +397,8 @@ public sealed class FighterRenderer : IGameRenderer
     private static char Initial(Entity fighter) => fighter switch
     {
         HeroEntity { Class: HeroClass.Warrior } => 'G',
+        HeroEntity { Class: HeroClass.Rogue } => 'V',
+        HeroEntity { Class: HeroClass.Mage } => 'M',
         MonsterEntity { Species: MonsterSpecies.Rat } => 'R',
         MonsterEntity { Species: MonsterSpecies.Goblin } => 'G',
         _ => '?',
@@ -413,19 +438,33 @@ public sealed class FighterRenderer : IGameRenderer
         r.MoveTo(0f, 0f);
         r.LineTo(0.6f, 1f);
 
-        return new Dictionary<char, SKPath> { ['G'] = g, ['R'] = r };
+        var v = new SKPath();
+        v.MoveTo(-0.65f, -1f);
+        v.LineTo(0f, 1f);
+        v.LineTo(0.65f, -1f);
+
+        var m = new SKPath();
+        m.MoveTo(-0.7f, 1f);
+        m.LineTo(-0.7f, -1f);
+        m.LineTo(0f, 0.2f);
+        m.LineTo(0.7f, -1f);
+        m.LineTo(0.7f, 1f);
+
+        return new Dictionary<char, SKPath> { ['G'] = g, ['R'] = r, ['V'] = v, ['M'] = m };
     }
 
     public void Dispose()
     {
         _sheet?.Dispose();
         _shadow.Dispose();
-        foreach (var paint in new[] { _heroSprite, _monsterSprite, _goblinSprite, _deadSprite })
+        foreach (var paint in new[] { _heroSprite, _rogueSprite, _mageSprite, _monsterSprite, _goblinSprite, _deadSprite })
         {
             paint.ColorFilter?.Dispose();
             paint.Dispose();
         }
         _heroFill.Dispose();
+        _rogueFill.Dispose();
+        _mageFill.Dispose();
         _monsterFill.Dispose();
         _goblinFill.Dispose();
         _deadFill.Dispose();

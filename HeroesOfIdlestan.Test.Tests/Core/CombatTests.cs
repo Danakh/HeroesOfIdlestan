@@ -302,16 +302,18 @@ public class CombatLoopTests
     {
         var c = new GameController();
         c.NewDebugGame(seed: 1);
+        bool advanced = false;
         for (int i = 0; i < 4 * 90; i++)
         {
             c.SimulateTicks(GameClock.TicksPerSecond / 4);
             if (c.State.Run.Phase != RunPhase.Fighting) continue;
+            advanced |= c.State.Heroes.Any(h => h.IsAlive && h.Line < h.FormationLine);
             // Une ligne peut attendre qu'un marcheur arrive pour se compléter.
             long now = c.State.Clock.CurrentTick;
             if (!c.State.Heroes.Any(h => h.IsAlive && h.ArrivalTick > now)) AssertPyramid(c.State.Heroes);
             if (!c.State.Monsters.Any(m => m.IsAlive && m.ArrivalTick > now)) AssertPyramid(c.State.Monsters);
         }
-        Assert.Contains(c.State.Heroes, h => h.Line < h.FormationLine);
+        Assert.True(advanced, "Aucun héros n'a avancé.");
     }
 
     [Fact]

@@ -10,8 +10,6 @@
   "ui_new_game": "New game",
   "event_achievement_unlocked": "Achievement unlocked: {0}",
   "ui_zone": "Zone {0} (best {1})",
-  "ui_warrior_level": "Warrior lvl {0} — XP {1}/{2}",
-  "ui_warrior_level_max": "Warrior lvl {0} (max)",
   "ui_auto_advance_on": "Auto advance: on",
   "ui_auto_advance_off": "Auto advance: off",
   "event_fight_won": "Zone {0} cleared",
@@ -23,5 +21,12 @@
   "ui_log": "Log ({0})",
   "ui_log_warning": "Warning",
   "ui_log_error": "Error",
-  "ui_log_empty": "Log is empty."
+  "ui_log_empty": "Log is empty.",
+  "ui_hero_level": "{0} lv. {1} — XP {2}/{3}",
+  "ui_hero_level_max": "{0} lv. {1} (max)",
+  "ui_recruit": "Recruit {0} ({1} gold)",
+  "class_warrior": "Warrior",
+  "class_rogue": "Rogue",
+  "class_mage": "Mage",
+  "event_hero_recruited": "Recruit: {0}"
 }

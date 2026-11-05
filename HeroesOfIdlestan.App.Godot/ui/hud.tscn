@@ -102,6 +102,25 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Menu"
 
+[node name="Recruits" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RecruitWarrior" type="Button" parent="Column/Recruits"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Recruter Guerrier"
+
+[node name="RecruitRogue" type="Button" parent="Column/Recruits"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Recruter Voleur"
+
+[node name="RecruitMage" type="Button" parent="Column/Recruits"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Recruter Mage"
+
 [node name="LogPanel" type="PanelContainer" parent="Column"]
 unique_name_in_owner = true
 visible = false

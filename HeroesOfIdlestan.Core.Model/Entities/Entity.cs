@@ -14,11 +14,13 @@ public enum EntityKind
     Monster,
 }
 
-/// <summary>Classe d'un personnage (GDD §5.2). Seul le Guerrier existe pour l'instant.</summary>
+/// <summary>Classe d'un personnage (GDD §5.2), choisie au recrutement. Le Prêtre viendra plus tard.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter<HeroClass>))]
 public enum HeroClass
 {
     Warrior,
+    Mage,
+    Rogue,
 }
 
 /// <summary>Espèce d'un monstre : ses statistiques et son ciblage en découlent (GDD §4.2).</summary>
@@ -90,6 +92,12 @@ public sealed class HeroEntity : Entity
     /// pas : l'équipe relevée après une défaite y reprend sa place.
     /// </summary>
     public int FormationLine { get; set; } = 1;
+
+    /// <summary>
+    /// Rang où le joueur a placé le personnage dans <see cref="FormationLine"/>, même numérotation que
+    /// <see cref="Entity.Rank"/> : l'équipe relevée après une défaite reprend aussi l'ordre de ses lignes.
+    /// </summary>
+    public int FormationRank { get; set; }
 
     /// <summary>Niveau dans la classe, de 1 au niveau maximum (GDD §5.4).</summary>
     public int Level { get; set; } = 1;

@@ -131,7 +131,38 @@ est déjà thread-safe et reste lisible sans partie en cours.
 - `Camera2D` : position monde au centre de l'écran, zoom ancré sous le curseur, cadrage.
 - `InputRouter` : clic, glisser = pan, molette et pincement = zoom. Un appui qui bouge de plus de
   6 px devient un glisser et ne produit plus de clic.
+- Un appui du bouton gauche **sur un personnage** le glisse dans la formation au lieu de déplacer la
+  vue (voir « Réorganiser la formation » ci-dessous).
 - `IScreen` : ce qui se dessine sur le canevas. Les menus vivent dans l'overlay Avalonia.
+
+## Réorganiser la formation
+
+Le joueur glisse un personnage vivant (bouton gauche, ou doigt) et le dépose :
+
+- **sur un autre personnage**, n'importe où dans la formation : les deux échangent leur place ;
+- **au bout d'une ligne** (cercle pointillé, en bas de la ligne), ou sur une nouvelle ligne derrière :
+  seulement quand toute l'équipe est en vie, et si la pyramide reste valide ;
+- **sur lui-même** : son ordre en cours est annulé.
+
+Le dépôt ne déplace personne tout de suite : il crée un ordre (`GameState.FormationMoves`, un par
+personnage, persisté) dessiné en flèche jaune. Au **prochain cycle d'action** du personnage, ce
+cycle sert à se déplacer au lieu d'agir : il marche vers sa place (`MoveTicks`), comme pour une
+avancée. Pendant le repos, les ordres s'exécutent à la fin du repos. Un ordre dont le personnage ou
+la cible est mort disparaît.
+
+| Pièce | Couche | Rôle |
+|---|---|---|
+| `FormationOrders` | Controller | Places proposées, ordres, exécution, placement des recrues, règle de la pyramide |
+| `GameController.OrderFormationMove`, `CancelFormationMove`, `Recruit` | Controller | Les commandes |
+| `FormationDrag` | Presentation | État du glisser (personnage, places, survol, dépôt), commun aux deux piles |
+| `FormationOrderRenderer` | Render (Skia) | Flèches, places proposées, flèche qui suit le pointeur |
+| `FormationOrderView` | Render.Godot | La même chose à plat sur le sol (`ImmediateMesh`), prise en coordonnées écran |
+
+Un échange modifie de la même façon la formation du combat (`Line`, `Rank`) et celle du joueur
+(`FormationLine`, `FormationRank`, reprise après une défaite) : les deux restent des pyramides. Le
+recrutement (boutons du HUD, prix exponentiel selon la taille de l'équipe) place la recrue le plus
+loin possible derrière sans casser la pyramide ; le joueur la déplace ensuite. Le GDD le réserve à
+l'entre-deux-runs : tant que le prestige n'existe pas, il se fait en cours de run.
 
 ## Overlay
 
@@ -148,7 +179,7 @@ rien et rien n'est sauvegardé. `MenuViewModel` (commun) propose :
 | Choix | Commande de la session | Effet |
 |---|---|---|
 | Continuer (si une sauvegarde existe) | `ContinueGame` | Charge `autosave.sav` et crédite l'absence ; sans sauvegarde lisible, nouvelle partie |
-| Nouvelle partie | `StartNewGame` | Un guerrier seul en zone 1 ; remplace la sauvegarde |
+| Nouvelle partie | `StartNewGame` | Un guerrier seul en zone 1 (recrues ensuite avec l'or) ; remplace la sauvegarde |
 | Partie de debug | `StartDebugGame` | 15 guerriers contre 15 gobelins à chaque zone (`RunState.Debug`), en pyramide 5-4-3-2-1 ; jamais sauvegardée |
 
 Le bouton Menu du HUD (`ReturnToMenu`) sauvegarde, vide le champ de bataille et rouvre le menu. Le

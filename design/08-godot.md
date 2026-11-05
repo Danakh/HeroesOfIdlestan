@@ -57,9 +57,10 @@ l'éditeur), le modèle 3D est introuvable et les combattants s'affichent en cap
 | `MenuView` | UI.Godot | Instancie `ui/menu.tscn` et la relie au `MenuViewModel` commun |
 | `GameRuntimeHost` | UI.Godot | Dérive du `GameHost` commun (verrou, `Read` / `Invoke`) ; ajoute `Render(delta)` et l'input Godot |
 | `GameRuntime` | Render.Godot | La `GameSession` commune + la scène ; `Render(delta)` met la scène à jour |
-| `BattleScene` | Render.Godot | Décor, lumière, caméra, une `FighterView` par combattant ; lit l'état, ne le modifie jamais |
+| `BattleScene` | Render.Godot | Décor, lumière, caméra, une `FighterView` par combattant, la `FormationOrderView` ; lit l'état, ne le modifie que par les commandes du glisser-déposer |
+| `FormationOrderView` | Render.Godot | Glisser-déposer d'un personnage (bouton gauche sur un héros, avant la caméra), flèches et places proposées à plat sur le sol |
 | `FighterView` | Render.Godot | Modèle animé, barre de vie, fente à chaque action, marche vers sa place (`FighterWalk`, dans Presentation), chute à la mort |
-| `CameraRig` | Render.Godot | Orbite (glisser), zoom (molette, pincement), déplacement (bouton du milieu) |
+| `CameraRig` | Render.Godot | Orbite (glisser hors d'un personnage), zoom (molette, pincement), déplacement (bouton du milieu) |
 | `GodotAudioService` | Render.Godot | Un `AudioStreamPlayer` polyphone par son ; WAV décodés par Godot |
 
 **Pourquoi un seul script.** Godot n'attache à une scène que les scripts de l'assembly du projet
@@ -88,6 +89,7 @@ La mise en page de l'UI se fait dans l'éditeur ; la logique reste dans les View
 | `%AutoAdvance`, `%Pause`, `%Save`, `%Menu` | `Button` | libellé + `ToggleAutoAdvance`, `TogglePause`, `Save`, `ReturnToMenu` |
 | `%Speed1`, `%Speed3`, `%Speed10` | `Button` | `SetSpeed(1 / 3 / 10)` |
 | `%Sound` | `Button` | `SoundLabel`, visible si `SoundAvailable`, `ToggleSound` |
+| `%RecruitWarrior`, `%RecruitRogue`, `%RecruitMage` | `Button` | `RecruitWarriorLabel`… (classe et prix), actif si `CanRecruit`, `Recruit(classe)` |
 
 | Nœud de `ui/menu.tscn` | Type | Lié à |
 |---|---|---|

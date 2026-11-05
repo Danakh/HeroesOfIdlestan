@@ -21,10 +21,13 @@ public static class BattleLayout
     /// <summary>Taille du sol : de quoi tenir trois lignes par camp.</summary>
     public static readonly Vector2 GroundSize = new(16f, 9f);
 
-    /// <summary>Le sol, allongé en profondeur pour tenir la ligne la plus longue des deux camps.</summary>
+    /// <summary>
+    /// Le sol, allongé en profondeur pour tenir la ligne la plus longue des deux camps, plus une place
+    /// côté équipe : celle proposée au bout d'une ligne pendant un glisser-déposer.
+    /// </summary>
     public static Vector2 GroundSizeFor(GameState state)
     {
-        int widest = Math.Max(Formation.WidestLine(state.Heroes, state.HeroHoles), Formation.WidestLine(state.Monsters, state.MonsterHoles));
+        int widest = Math.Max(Formation.WidestLine(state.Heroes, state.HeroHoles) + 1, Formation.WidestLine(state.Monsters, state.MonsterHoles));
         float depth = Math.Max(GroundSize.Y, 2 * ((widest - 1) * HalfSlot + 1.5f));
         return new Vector2(GroundSize.X, depth);
     }
@@ -34,9 +37,18 @@ public static class BattleLayout
     {
         // Les places de la ligne, trous réservés compris : un mort reste là où il est tombé.
         if (Formation.Place(fighter, side, holes) is not (int index, int count)) return null;
+        return SlotPosition(fighter.Line, index, count, isHero);
+    }
 
-        float x = FrontOffset + (fighter.Line - 1) * LineSpacing;
+    /// <summary>Position de la place <paramref name="index"/> parmi <paramref name="count"/> d'une ligne.</summary>
+    public static Vector3 SlotPosition(int line, int index, int count, bool isHero)
+    {
+        float x = FrontOffset + (line - 1) * LineSpacing;
         float z = Formation.HalfPosition(index, count) * HalfSlot;
         return new Vector3(isHero ? -x : x, 0, z);
     }
+
+    /// <summary>Position d'une place proposée au glisser-déposer.</summary>
+    public static Vector3 TargetPosition(FormationTarget target) =>
+        SlotPosition(target.Line, target.Index, target.Count, isHero: true);
 }

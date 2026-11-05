@@ -3,12 +3,14 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
+using HeroesOfIdlestan.Core.Model.Entities;
 using HeroesOfIdlestan.Core.Presentation.ViewModels;
 
 namespace HeroesOfIdlestan.Core.UI.Views;
 
 /// <summary>
-/// Barre du haut, construite en code (pas de XAML) et liée à <see cref="HudViewModel"/>. Le bouton
+/// Barre du haut, construite en code (pas de XAML) et liée à <see cref="HudViewModel"/>, avec une
+/// rangée de boutons de recrutement (actifs quand l'or suffit). Le bouton
 /// « Log » clignote tant qu'un message du journal n'a pas été vu, et déplie le journal sous la barre.
 /// </summary>
 public sealed class HudView : Border
@@ -73,6 +75,22 @@ public sealed class HudView : Border
             else log.ClearValue(BackgroundProperty);
         };
 
+        // Recrutement : une recrue de la classe choisie, au prix commun affiché sur chaque bouton.
+        var recruits = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(0, 6, 0, 0) };
+        foreach (var (heroClass, label) in new[]
+                 {
+                     (HeroClass.Warrior, nameof(HudViewModel.RecruitWarriorLabel)),
+                     (HeroClass.Rogue, nameof(HudViewModel.RecruitRogueLabel)),
+                     (HeroClass.Mage, nameof(HudViewModel.RecruitMageLabel)),
+                 })
+        {
+            var recruit = new Button();
+            recruit.Bind(ContentControl.ContentProperty, new Binding(label));
+            recruit.Bind(IsEnabledProperty, new Binding(nameof(HudViewModel.CanRecruit)));
+            recruit.Click += (_, _) => viewModel.Recruit(heroClass);
+            recruits.Children.Add(recruit);
+        }
+
         var logText = new SelectableTextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
         logText.Bind(TextBlock.TextProperty, new Binding(nameof(HudViewModel.LogText)));
         var logPanel = new Border
@@ -94,6 +112,7 @@ public sealed class HudView : Border
                     Spacing = 16,
                     Children = { gold, zone, hero, autoAdvance, pause, speeds, bank, save, sound, log, menu },
                 },
+                recruits,
                 logPanel,
             },
         };

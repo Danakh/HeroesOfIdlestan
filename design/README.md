@@ -3,8 +3,12 @@
 HeroesOfIdlestan est un idle / autobattler 2D en C# (.NET 10), bâti sur un squelette : simulation au
 tick, sauvegardes testées, rendu SkiaSharp, interface Avalonia, sons, et trois plateformes (bureau,
 web, Android). Les règles du jeu sont dans le [GDD](Gamedesign.md) ; la version actuelle en implémente
-la boucle minimale : un guerrier contre un rat, combat → repos → zone suivante, recul et arrêt de
-l'avance automatique en cas de défaite.
+la boucle minimale : un guerrier contre un rat (un monstre de plus toutes les 10 zones : rats en
+ligne 1, gobelins en ligne 2 qui se battent comme des voleurs), combat → repos → zone suivante, recul et arrêt de
+l'avance automatique en cas de défaite ; le recrutement de guerriers, voleurs (corps à corps en
+ligne 1, couteaux à portée 2 en ligne 2) et mages (sort mono-cible portée 2-3 en lignes 2 et 3) ;
+et la réorganisation de la formation par glisser-déposer (voir
+[02 — Architecture](02-architecture.md#réorganiser-la-formation)).
 
 Il est extrait de l'architecture de SettlersOfIdlestan.
 

@@ -7,8 +7,9 @@ using HeroesOfIdlestan.Core.Model.State;
 namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 
 /// <summary>
-/// La scène 3D du combat : décor, lumière, caméra, et une vue par combattant. Lit l'état à chaque
-/// frame, ne le modifie jamais. Construite en code : le head n'a qu'à accrocher <see cref="Root"/>.
+/// La scène 3D du combat : décor, lumière, caméra, une vue par combattant et la réorganisation de la
+/// formation (<see cref="FormationOrderView"/>). Lit l'état à chaque frame et ne le modifie que par
+/// les commandes du contrôleur (glisser-déposer). Construite en code : le head n'a qu'à accrocher <see cref="Root"/>.
 /// </summary>
 public sealed class BattleScene : IDisposable
 {
@@ -20,7 +21,9 @@ public sealed class BattleScene : IDisposable
 
     private readonly GameController _game;
     private readonly CameraRig _camera = new();
+    private readonly FormationOrderView _orders;
     private readonly MeshInstance3D _ground;
+    private Vector2 _groundSize;
     private readonly PackedScene? _model;
     private readonly Dictionary<Entity, FighterView> _views = new(ReferenceEqualityComparer.Instance);
     private readonly List<FighterView> _corpses = [];
@@ -42,6 +45,8 @@ public sealed class BattleScene : IDisposable
         _ground = BuildGround();
         Root.AddChild(_ground);
         Root.AddChild(_camera.Camera);
+        _orders = new FormationOrderView(game, _camera.Camera);
+        Root.AddChild(_orders.Root);
 
         game.StateReplaced += Clear;
     }
@@ -57,6 +62,9 @@ public sealed class BattleScene : IDisposable
         Sync(state, state.Heroes, isHero: true, speed, delta, camera);
         Sync(state, state.Monsters, isHero: false, speed, delta, camera);
         _freshState = false;
+        _orders.Update(state);
+        // Une recrue peut élargir la formation en cours de partie : le sol suit, sans toucher à la caméra.
+        if (BattleLayout.GroundSizeFor(state) is var size && size != _groundSize) ResizeGround(size);
 
         // Un combattant qui quitte la liste (monstre tué) tombe là où il était avant de disparaître.
         _gone.Clear();
@@ -77,7 +85,8 @@ public sealed class BattleScene : IDisposable
         }
     }
 
-    public bool HandleInput(InputEvent input) => _camera.HandleInput(input);
+    /// <summary>Le glisser d'un personnage d'abord (bouton gauche sur un héros), sinon la caméra.</summary>
+    public bool HandleInput(InputEvent input) => _orders.HandleInput(input) || _camera.HandleInput(input);
 
     private void Sync(GameState state, IReadOnlyList<Entity> side, bool isHero, float speed, float delta, Basis camera)
     {
@@ -101,6 +110,7 @@ public sealed class BattleScene : IDisposable
         foreach (var view in _corpses) view.Free();
         _views.Clear();
         _corpses.Clear();
+        _orders.Cancel();
         FitBattlefield(_game.State);
         _freshState = true;
     }
@@ -112,9 +122,15 @@ public sealed class BattleScene : IDisposable
     private void FitBattlefield(GameState state)
     {
         var size = BattleLayout.GroundSizeFor(state);
+        ResizeGround(size);
+        _camera.Reset(distanceScale: size.Y / BattleLayout.GroundSize.Y);
+    }
+
+    private void ResizeGround(Vector2 size)
+    {
+        _groundSize = size;
         ((PlaneMesh)_ground.Mesh).Size = size;
         ((BoxMesh)_ground.GetNode<MeshInstance3D>("Midline").Mesh).Size = new Vector3(0.06f, 0.01f, size.Y - 1f);
-        _camera.Reset(distanceScale: size.Y / BattleLayout.GroundSize.Y);
     }
 
     public void Dispose()

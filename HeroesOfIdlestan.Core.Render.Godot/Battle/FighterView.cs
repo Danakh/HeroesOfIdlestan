@@ -20,6 +20,9 @@ namespace HeroesOfIdlestan.Core.Render.Godot.Battle;
 /// <para>Tout suit le temps de jeu, pas le temps réel : les animations ralentissent, accélèrent ou
 /// s'arrêtent avec la vitesse et la pause, comme la simulation.</para>
 ///
+/// <para>Teinte des héros selon la classe : bleue pour le guerrier, ambre pour le voleur, violette
+/// pour le mage ; rouge pour les monstres, verte pour les gobelins.</para>
+///
 /// <para>Hiérarchie : <see cref="Root"/> (position) → pivot (chute) → modèle (orientation, échelle).
 /// La barre de vie pend à <see cref="Root"/> pour rester droite quand le corps tombe.</para>
 /// </summary>
@@ -41,6 +44,8 @@ internal sealed class FighterView
     private const float BarHeight = 0.09f;
 
     private static readonly Color HeroTint = new(0.25f, 0.5f, 0.85f, 0.12f);
+    private static readonly Color RogueTint = new(0.85f, 0.65f, 0.15f, 0.28f);
+    private static readonly Color MageTint = new(0.6f, 0.3f, 0.9f, 0.32f);
     private static readonly Color MonsterTint = new(0.8f, 0.25f, 0.15f, 0.3f);
     private static readonly Color GoblinTint = new(0.3f, 0.7f, 0.2f, 0.35f);
     private static readonly Color DeadTint = new(0.2f, 0.2f, 0.22f, 0.6f);
@@ -76,6 +81,8 @@ internal sealed class FighterView
         _isHero = isHero;
         _aliveTint = fighter switch
         {
+            HeroEntity { Class: HeroClass.Rogue } => RogueTint,
+            HeroEntity { Class: HeroClass.Mage } => MageTint,
             HeroEntity => HeroTint,
             MonsterEntity { Species: MonsterSpecies.Goblin } => GoblinTint,
             _ => MonsterTint,

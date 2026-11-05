@@ -14,13 +14,19 @@ public sealed record HudSnapshot(
     int Zone,
     int HighestZone,
     bool AutoAdvance,
+    string HeroClass, // classe du premier personnage, nom de l'enum ; vide sans équipe
     int HeroLevel,
     long HeroXp,
     long HeroXpToNext, // 0 au niveau maximum
+    int TeamSize,
+    long RecruitCost,
     bool SoundAvailable,
     bool SoundEnabled)
 {
-    public static readonly HudSnapshot Empty = new(false, 1, 0, 0, 1, 1, true, 0, 0, 0, false, false);
+    public static readonly HudSnapshot Empty = new(false, 1, 0, 0, 1, 1, true, "", 0, 0, 0, 0, 0, false, false);
+
+    /// <summary>L'or suffit pour la prochaine recrue.</summary>
+    public bool CanRecruit => TeamSize > 0 && Gold >= RecruitCost;
 }
 
 /// <summary>Le menu principal : affiché ou non, et s'il y a une partie à continuer.</summary>
